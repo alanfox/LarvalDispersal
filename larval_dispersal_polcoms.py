@@ -29,22 +29,21 @@ import matplotlib.path as mplPath
 #from scipy.interpolate import interp1d
 import shapefile
 #from bngtolatlon import OSGB36toWGS84
-import networkx as NX
+#import networkx as NX
 from grid_class import Grid
 from mpa_class import Mpa
 from larva_class import Larva
 
-run_dir = 'polcoms1991/Run_20150402/'
+run_dir = 'polcoms1993/Run_20150422/'
 
-graph_output_dir = run_dir + 'Networkdata/'
 track_output_dir = run_dir + 'Trackdata/'
 mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
 
 
 nc_fileu = ('C:/Users/af26/PolcommModelData/' + 
-            '1991/NOCL_S12run420_1991_UV.nc')
+            '1993/NOCL_S12run420_1993_UV.nc')
 nc_filet = ('C:/Users/af26/PolcommModelData/' + 
-            '1991/NOCL_S12run420_1991_TSz.nc')
+            '1993/NOCL_S12run420_1993_TSz.nc')
 nc_fidu = Dataset(nc_fileu, 'r')
 nc_fidt = Dataset(nc_filet, 'r')
 
@@ -53,7 +52,7 @@ nc_fidt = Dataset(nc_filet, 'r')
 # NUM_LARVAE are released at the start of each day for RELEASE_WINDOW days
 # for a single release at time zero set RELEASE_WINDOW negative
 
-NUM_LARVAE = 30
+NUM_LARVAE = 10
 RELEASE_WINDOW = 30
 
 STARTDAY = 32
@@ -69,7 +68,6 @@ KM = np.array([1.0, 1.0, 0.0002]) #constant diffusion coefficient m2/s
 
 VERTICAL_INTERP = False
 ANIMATE = False
-SETTLING = True
 DEATH = True
 
 # constants for larval behaviour
@@ -132,19 +130,6 @@ def read_shapefile(filename):
     return shapes, records
 
 # helper functions
-        
-def group_settle(mpa_sprite_group, larva_object):
-    settled = False
-    for mpa in set(mpa_sprite_group):
-        if mpa.settles(larva_object):
-            settled = True
-    return settled
-
-def group_group_settle(larval_sprite_group, mpa_sprite_group):
-    for larva in set(larval_sprite_group):
-        if group_settle(mpa_sprite_group, larva):
-            larval_sprite_group.remove(larva)
-            settled_group.add(larva)  
             
 def release_larvae(source, num, release_day):
     
@@ -173,7 +158,7 @@ def save_tracks_to_file(nc_outfile):
 
     nc_ofid = Dataset(nc_outfile, 'w')
     
-    nl = len(larvae_dead) + len(settled_group) + len(larvae_outofarea)
+    nl = len(larvae_dead) + len(larvae_outofarea) + len(larvae_group)
     
     if DEATH:
         maxt = int((DEADAGE + 1) * SECONDS_IN_DAY / DT)
@@ -185,34 +170,22 @@ def save_tracks_to_file(nc_outfile):
     lon = nc_ofid.createVariable('longitude','f8',('nlarvae','time',))
     lat = nc_ofid.createVariable('latitude','f8',('nlarvae','time',))
     dep = nc_ofid.createVariable('depth','f8',('nlarvae','time',))
+    bed = nc_ofid.createVariable('at bed','i',('nlarvae','time',))
     rt = nc_ofid.createVariable('release day','i',('nlarvae',))
-    fate = nc_ofid.createVariable('fate','S1',('nlarvae',))
+    fate = nc_ofid.createVariable('fate','S1',('nlarvae',))    
     
     i = 0
-    
-    for larva in settled_group:
-        x, y = larva.get_track()
-        z = larva.get_depth_history()
-        release_time = larva.get_release_day()
-        state = 'S'
            
-        lon[i,0:len(x)] = x[0:len(x)]
-        lat[i,0:len(y)] = y[0:len(y)]
-        dep[i,0:len(z)] = z[0:len(z)]
-        rt[i] = release_time
-        fate[i] = state
-        
-        i = i + 1
-        
     for larva in larvae_dead:
         x, y = larva.get_track()
-        z = larva.get_depth_history()
+        z, b = larva.get_depth_history()
         release_time = larva.get_release_day()
         state = 'D'
            
         lon[i,0:len(x)] = x[0:len(x)]
         lat[i,0:len(y)] = y[0:len(y)]
         dep[i,0:len(z)] = z[0:len(z)]
+        bed[i,0:len(z)] = b[0:len(z)]
         rt[i] = release_time
         fate[i] = state
         
@@ -220,13 +193,29 @@ def save_tracks_to_file(nc_outfile):
     
     for larva in larvae_outofarea:
         x, y = larva.get_track()
-        z = larva.get_depth_history()
+        z, b = larva.get_depth_history()
         release_time = larva.get_release_day()
         state = 'L'
            
         lon[i,0:len(x)] = x[0:len(x)]
         lat[i,0:len(y)] = y[0:len(y)]
         dep[i,0:len(z)] = z[0:len(z)]
+        bed[i,0:len(z)] = b[0:len(z)]
+        rt[i] = release_time
+        fate[i] = state
+        
+        i = i + 1
+        
+    for larva in larvae_group:
+        x, y = larva.get_track()
+        z, b = larva.get_depth_history()
+        release_time = larva.get_release_day()
+        state = 'A'
+           
+        lon[i,0:len(x)] = x[0:len(x)]
+        lat[i,0:len(y)] = y[0:len(y)]
+        dep[i,0:len(z)] = z[0:len(z)]
+        bed[i,0:len(z)] = b[0:len(z)]
         rt[i] = release_time
         fate[i] = state
         
@@ -235,8 +224,6 @@ def save_tracks_to_file(nc_outfile):
     nc_ofid.close()
     
     
-G = NX.DiGraph()
-
     # read in and calculate the model grid variables
     
 gridt = Grid(nc_fidt)
@@ -284,7 +271,6 @@ for line in mpa_name_file:
     
     larvae_group = set([])
     larvae_outofarea = set([])
-    settled_group = set([])
     larvae_dead = set([])
 
     # seed larvae randomly in a particular mpa
@@ -322,35 +308,8 @@ for line in mpa_name_file:
             
         # release a new batch of larvae if still in RELEASE_WINDOW
             if int(round(rundays)) < RELEASE_WINDOW:
-                release_larvae(MPA_SOURCE, NUM_LARVAE, rundays)
-    
-#            if ANIMATE:
-#                plot_animate()
-                
-        if (SETTLING and (rundays > MINSETTLEAGE)):
-            group_group_settle(larvae_group, mpa_group)
-            
-    # output the connectivity graph
-    
-    
-    # build graph
-    G.clear()
-    
-    G.add_node(MPA_SOURCE)
-    
-    for mpa in mpa_group:
-        nsettled = mpa.get_settled()
-        if nsettled != 0:
-            mpa_name = mpa.get_sitename()
-            weight = float(nsettled) / float(NUM_LARVAE)
-            G.add_weighted_edges_from([(MPA_SOURCE,mpa_name,weight)])
-                       
-    # output graph to file
-#
-    outfile = open(graph_output_dir + MPA_SOURCE + '.graphml', 'w')
-    NX.write_graphml(G,outfile)
-    outfile.close()
-    
+                release_larvae(MPA_SOURCE, NUM_LARVAE, int(round(rundays)))
+        
     # save tracks to file
     
     track_outfile = track_output_dir + MPA_SOURCE + '.nc'

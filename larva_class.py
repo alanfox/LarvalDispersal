@@ -40,9 +40,11 @@ class Larva:
         self.xlon_history = []
         self.xlat_history = []
         self.depth_history = []
+        self.bed_history = []
         self.xlon_history.append(self.pos[0])
         self.xlat_history.append(self.pos[1])
         self.depth_history.append(self.pos[2])
+        self.bed_history.append(0)
         self.turb = np.zeros((3),dtype = float)
         self.source = source
         self.i = 10000
@@ -105,7 +107,7 @@ class Larva:
         return self.xlon_history, self.xlat_history
         
     def get_depth_history(self):
-        return self.depth_history        
+        return self.depth_history, self.bed_history        
     
     def get_velocity(self):
         return self.vel
@@ -282,6 +284,7 @@ class Larva:
             self.xlon_history.append(self.pos[0])
             self.xlat_history.append(self.pos[1])
             self.depth_history.append(self.pos[2])
+            self.bed_history.append(0)
             return True
             
         # test if advected on to land
@@ -333,6 +336,7 @@ class Larva:
             self.xlon_history.append(self.pos[0])
             self.xlat_history.append(self.pos[1])
             self.depth_history.append(self.pos[2])
+            self.bed_history.append(0)
             return True
             
         # test if diffused on to land
@@ -357,5 +361,9 @@ class Larva:
         self.xlon_history.append(self.pos[0])
         self.xlat_history.append(self.pos[1])
         self.depth_history.append(self.pos[2])
+        if self.at_bed:
+            self.bed_history.append(1)
+        else:
+            self.bed_history.append(0)
         
         return False

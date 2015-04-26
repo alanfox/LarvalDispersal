@@ -43,6 +43,8 @@ class Grid:
                                         - new_depth[k+1,j,i])
         self.depth = new_depth.copy()
         
+        print 'newgrid'
+        
     def get_latitude(self):
         return self.latitude
     
@@ -86,6 +88,10 @@ class Grid:
         # interpolate
         return  (((d00 * dy1) + (d01 * dy0)) * dx1
                + ((d10 * dy1) + (d11 * dy0)) * dx0) / dxdy
+        
+#        d00 = self.get_total_depth_at_point(lon,lat)
+#        
+#        return np.linspace(d00/40.0,d00,40)
                 
     def get_total_depth_at_point(self, lon, lat):
         

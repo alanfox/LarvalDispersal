@@ -65,15 +65,18 @@ class Mpa:
         return self.nsettled
         
     def settles(self,larva):
-        # tests if an object of class Larva settles in the mpa
-        if larva.ready_to_settle():
-            pos = larva.get_position()
-            x = pos[0]
-            y = pos[1]
-            if self.bbox_path.contains_point((x,y)):
-                if self.shape_path.contains_point((x,y)):
-                    self.nsettled = self.nsettled + 1
-                    return True
+        # tests if an object of class Larva_tracks settles in the mpa
+        settleage = larva.get_settleage()
+        lon = larva.get_lon()
+        lat = larva.get_lat()
+        bed = larva.get_bed()
+        life = len(lon)
+        for i in range(settleage,life):
+            if bed[i] == 1:
+                if self.bbox_path.contains_point((lon[i],lat[i])):
+                    if self.shape_path.contains_point((lon[i],lat[i])):
+                        self.nsettled = self.nsettled + 1
+                        return True
         return False
         
     def bng2lonlat(self,bng):

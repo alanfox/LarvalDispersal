@@ -367,3 +367,45 @@ class Larva:
             self.bed_history.append(0)
         
         return False
+        
+class Larval_tracks:
+    
+    def __init__(self, lon, lat, dep,bed,rt,fate, MPA_SOURCE,
+                 RUN_CONST, SWIM_CONST):
+                     
+        self.lon = lon
+        self.lat = lat
+        self.dep = dep
+        self.bed = bed
+        self.rt = rt
+        self.fate = fate
+        self.source = MPA_SOURCE
+        
+        #extract run constants 
+        self.seconds_in_day = RUN_CONST[0]
+        self.m_to_degree = RUN_CONST[1]
+        self.dt = RUN_CONST[2]
+        self.km = RUN_CONST[3]
+        self.vertical_interp = RUN_CONST[4]
+        
+        #larval behaviour constants - vary slightly for each larva
+        self.swimslow = SWIM_CONST[0]
+        self.swimfast = SWIM_CONST[1] 
+        self.swimstart = SWIM_CONST[2]
+        self.swimmax = SWIM_CONST[3] + np.random.normal(0.0,1.0)
+        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,1.0)
+        self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
+        self.minsettleage = SWIM_CONST[6]
+        self.deadage = SWIM_CONST[7]
+
+    def get_lon(self):
+        return self.lon
+        
+    def get_lat(self):
+        return self.lat
+        
+    def get_bed(self):
+        return self.bed
+        
+    def get_settleage(self):
+        return int(self.minsettleage * self.seconds_in_day / self.dt)

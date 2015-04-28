@@ -79,7 +79,7 @@ class Grid:
         
         # interpolation coefficients        
         dx1 = self.longitude[i] - lon
-        dx0 = lon - self.longitude[i-1]        
+        dx0 = lon - self.longitude[i-1]     
         dy1 = self.latitude[j] - lat
         dy0 = lat - self.latitude[j-1]
         dxdy = ((self.longitude[i] - self.longitude[i-1])
@@ -89,9 +89,26 @@ class Grid:
         return  (((d00 * dy1) + (d01 * dy0)) * dx1
                + ((d10 * dy1) + (d11 * dy0)) * dx0) / dxdy
         
-#        d00 = self.get_total_depth_at_point(lon,lat)
+#        N = 40
+#        B = 0.06
+#        theta = 8.0
+#        hc = 150.0
 #        
-#        return np.linspace(d00/40.0,d00,40)
+#        hij = self.get_total_depth_at_point(lon,lat)
+#        if hij <= hc:
+#            z = np.linspace(hij/float(N),hij,N)
+#            return z
+#        else:
+#            Sk = np.linspace(-1.0,-1.0/float(N),N)
+#            h = (hij - hc)/hij
+#            Ck1 = (1.0 - B) * np.sinh(theta * Sk) / np.sinh(theta)
+#            Ck2 = (B * (np.tanh(theta * (Sk + 0.5)) - np.tanh(theta * 0.5)) / 
+#                       (2 * np.tanh(0.5* theta)))
+#                       
+#            Ck = Ck1 + Ck2
+#            z = Sk + h * (Ck - Sk)
+#       
+#            return - 1.0 * z * hij
                 
     def get_total_depth_at_point(self, lon, lat):
         

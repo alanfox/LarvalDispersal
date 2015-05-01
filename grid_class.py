@@ -43,8 +43,6 @@ class Grid:
                                         - new_depth[k+1,j,i])
         self.depth = new_depth.copy()
         
-        print 'newgrid'
-        
     def get_latitude(self):
         return self.latitude
     
@@ -71,44 +69,44 @@ class Grid:
         # (bi)linear interpolation - not pretty but who cares
         #  well, i might because it uses a lot of time!
         
-        # depths at corners
-        d00 = self.depth[:, j-1, i-1]
-        d10 = self.depth[:, j-1, i  ]
-        d01 = self.depth[:, j  , i-1]
-        d11 = self.depth[:, j  , i  ]
-        
-        # interpolation coefficients        
-        dx1 = self.longitude[i] - lon
-        dx0 = lon - self.longitude[i-1]     
-        dy1 = self.latitude[j] - lat
-        dy0 = lat - self.latitude[j-1]
-        dxdy = ((self.longitude[i] - self.longitude[i-1])
-                * (self.latitude[j] - self.latitude[j-1]))
-                
-        # interpolate
-        return  (((d00 * dy1) + (d01 * dy0)) * dx1
-               + ((d10 * dy1) + (d11 * dy0)) * dx0) / dxdy
-        
-#        N = 40
-#        B = 0.06
-#        theta = 8.0
-#        hc = 150.0
+#        # depths at corners
+#        d00 = self.depth[:, j-1, i-1]
+#        d10 = self.depth[:, j-1, i  ]
+#        d01 = self.depth[:, j  , i-1]
+#        d11 = self.depth[:, j  , i  ]
 #        
-#        hij = self.get_total_depth_at_point(lon,lat)
-#        if hij <= hc:
-#            z = np.linspace(hij/float(N),hij,N)
-#            return z
-#        else:
-#            Sk = np.linspace(-1.0,-1.0/float(N),N)
-#            h = (hij - hc)/hij
-#            Ck1 = (1.0 - B) * np.sinh(theta * Sk) / np.sinh(theta)
-#            Ck2 = (B * (np.tanh(theta * (Sk + 0.5)) - np.tanh(theta * 0.5)) / 
-#                       (2 * np.tanh(0.5* theta)))
-#                       
-#            Ck = Ck1 + Ck2
-#            z = Sk + h * (Ck - Sk)
-#       
-#            return - 1.0 * z * hij
+#        # interpolation coefficients        
+#        dx1 = self.longitude[i] - lon
+#        dx0 = lon - self.longitude[i-1]     
+#        dy1 = self.latitude[j] - lat
+#        dy0 = lat - self.latitude[j-1]
+#        dxdy = ((self.longitude[i] - self.longitude[i-1])
+#                * (self.latitude[j] - self.latitude[j-1]))
+#                
+#        # interpolate
+#        return  (((d00 * dy1) + (d01 * dy0)) * dx1
+#               + ((d10 * dy1) + (d11 * dy0)) * dx0) / dxdy
+        
+        N = 40
+        B = 0.05
+        theta = 8.0
+        hc = 150.0
+        
+        hij = self.get_total_depth_at_point(lon,lat)
+        if hij <= hc:
+            z = np.linspace(hij/float(N),hij,N)
+            return z
+        else:
+            Sk = np.linspace(-1.0,-1.0/float(N),N)
+            h = (hij - hc)/hij
+            Ck1 = (1.0 - B) * np.sinh(theta * Sk) / np.sinh(theta)
+            Ck2 = (B * (np.tanh(theta * (Sk + 0.5)) - np.tanh(theta * 0.5)) / 
+                       (2 * np.tanh(0.5* theta)))
+                       
+            Ck = Ck1 + Ck2
+            z = Sk + h * (Ck - Sk)
+       
+            return - 1.0 * z * hij
                 
     def get_total_depth_at_point(self, lon, lat):
         

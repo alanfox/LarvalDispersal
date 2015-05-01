@@ -34,16 +34,16 @@ from grid_class import Grid
 from mpa_class import Mpa
 from larva_class import Larva
 
-run_dir = 'polcoms1991/testrun_1/'
+run_dir = 'polcoms1994/Run_20150428/'
 
 track_output_dir = run_dir + 'Trackdata/'
 mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
 
 
 nc_fileu = ('C:/Users/af26/PolcommModelData/' + 
-            '1991/NOCL_S12run420_1991_UV.nc')
+            '1994/NOCL_S12run420_1994_UV.nc')
 nc_filet = ('C:/Users/af26/PolcommModelData/' + 
-            '1991/NOCL_S12run420_1991_TSz.nc')
+            '1994/NOCL_S12run420_1994_TSz.nc')
 nc_fidu = Dataset(nc_fileu, 'r')
 nc_fidt = Dataset(nc_filet, 'r')
 
@@ -52,8 +52,8 @@ nc_fidt = Dataset(nc_filet, 'r')
 # NUM_LARVAE are released at the start of each day for RELEASE_WINDOW days
 # for a single release at time zero set RELEASE_WINDOW negative
 
-NUM_LARVAE = 3
-RELEASE_WINDOW = 1
+NUM_LARVAE = 10
+RELEASE_WINDOW = 30
 
 STARTDAY = 32
 

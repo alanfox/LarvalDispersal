@@ -33,7 +33,9 @@ class Mpa:
         self.points = shape.points
 # convert from bng to latlon
         if (self.area_type == 'MPA' or self.area_type == 'MAR_SAC' 
-                                    or self.area_type == 'SPA'):
+                                    or self.area_type == 'SPA'
+#                                    or self.area_type == 'Dahl'
+                                    ):
             self.bbox = self.bng2lonlat_bbox(self.bbox)
             self.bbox_points = self.bng2lonlat(self.bbox_points)
             self.points = self.bng2lonlat(self.points)
@@ -59,8 +61,9 @@ class Mpa:
             return self.record[0]
         if self.area_type == 'IRISH':
             return self.record[1]
-
-        
+        if self.area_type == 'Dahl':
+            return self.record[1]
+       
     def get_settled(self):
         return self.nsettled
         

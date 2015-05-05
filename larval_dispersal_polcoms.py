@@ -36,7 +36,10 @@ from larva_class import Larva
 
 # read in run data file
 
-input_data_file = open('input.dat', 'r')
+run_dir = ('C:/Users/af26/Documents/PythonScripts/LarvalDispersal/'
+            + 'polcoms1993/Run_20150422/')
+
+input_data_file = open(run_dir + 'input.dat', 'r')
 
 input_dict = {}
 
@@ -44,11 +47,8 @@ for line in input_data_file:
     wordlist = line.split()
     input_dict[wordlist[0]] = wordlist[-1]
     
-
-    
-run_dir = input_dict['run_dir']
-
 track_output_dir = run_dir + 'Trackdata/'
+
 mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
 
 nc_fileu = input_dict['nc_fileu']
@@ -276,7 +276,7 @@ for line in mpa_name_file:
         mpa_group.add(Mpa(shapes[i], records[i],'IRISH'))
         
     # Mikael Dahl's lophelia sites
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/MikaelDahl')
+    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/MikaelDahl_1')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
         

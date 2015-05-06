@@ -24,7 +24,7 @@ class Larva:
     # each larva will be an instance of this class
 
     def __init__(self, pos, vel, source, release_day, gridt, 
-                 RUN_CONST, SWIM_CONST):
+                 RUN_CONST, SWIM_CONST, temperature, T_LOWER, T_UPPER):
 
         self.age = 0.0
         self.release_day = release_day
@@ -41,17 +41,29 @@ class Larva:
         self.xlat_history = []
         self.depth_history = []
         self.bed_history = []
+        self.temperature_history = []
         self.xlon_history.append(self.pos[0])
         self.xlat_history.append(self.pos[1])
         self.depth_history.append(self.pos[2])
-        self.bed_history.append(0)
+        self.bed_history.append(0)        
         self.turb = np.zeros((3),dtype = float)
         self.source = source
         self.i = 10000
         self.j = 10000
+        self.ipos = 10000
+        self.jpos = 10000
+        self.kpos = 10000
         self.fu2 = []
         self.fv2 = []
         self.fw2 = []
+        
+        # find initial position in grid
+        self.update_kji(gridt)
+        
+        self.temperature_history.append(
+                        temperature[self.kpos,self.jpos,self.ipos])
+#        print self.kpos,self.jpos,self.ipos
+#        print temperature[self.kpos,self.jpos,self.ipos]
         
         #extract run constants
         
@@ -72,10 +84,12 @@ class Larva:
         self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
+        self.t_lower = T_LOWER
+        self.t_upper = T_UPPER
+                
+        # monitor health
+        self.isdead = False
         
-        
-        
-
 # uncomment to activate settling and dying
 #        self.minsettleage = MINSETTLEAGE
 #        self.deadage = DEADAGE
@@ -109,6 +123,9 @@ class Larva:
     def get_depth_history(self):
         return self.depth_history, self.bed_history        
     
+    def get_temperature_history(self):
+        return self.temperature_history       
+    
     def get_velocity(self):
         return self.vel
     
@@ -134,15 +151,27 @@ class Larva:
             self.fv2 = interp1d(zlevs, v2, kind = 'linear')
             self.fw2 = interp1d(zlevs, w2, kind = 'linear')
 
+    def update_kji(self,gridt):
+        
+        # find the position on the grid. Moved here (out of 'advection')
+        # because it is needed for assessing temperature and for
+        # advection. Finding k is expensive
+        
+        self.ipos, self.jpos = gridt.get_index_ne(self.pos[0], self.pos[1])
+        self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
+        
+        return
+
     def advection(self, gridt, u, v, w):
         
         # presently no interpolation in the horizontal direction
-        # interpolation in the vertical
-        # this was to save me coding time, reduce run-time
+        # interpolation in the vertical not implemented either
+        # this was to save me coding time, reduce run-time 
         
         # update velocity
 
-        i, j = gridt.get_index_ne(self.pos[0], self.pos[1])
+        i = self.ipos
+        j = self.jpos
         
         if self.vertical_interp:
             # interpolate velocities in the vertical
@@ -157,13 +186,13 @@ class Larva:
             # or just go with box larva is in
             # k box with larva in
             
-            k = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
-            # interpolate velocities
-            # don't bother for now, just use the gridbox the point is in
+            k = self.kpos
             
             self.vel[0] = u[k,j,i]
             self.vel[1] = v[k,j,i]
-            self.vel[2] = w[k,j,i]            
+            self.vel[2] = w[k,j,i]
+
+        # check if larva is dead    
         
 
     def diffusion(self):
@@ -252,11 +281,9 @@ class Larva:
         return ((self.age > self.minsettleage) and self.at_bed)
         
     def dead(self):
-        return (self.age > self.deadage)
-                        
-                
-    def update(self, dt, rundays, gridu, gridt, u, v, w):
-        
+        return (self.isdead or (self.age > self.deadage))
+                                        
+    def update(self, dt, rundays, gridu, gridt, u, v, w, temperature):
         
         self.rundays = rundays
         self.age = self.age + dt / self.seconds_in_day
@@ -269,7 +296,21 @@ class Larva:
         m_to_degree_lon = self.m_to_degree / np.cos(np.radians(self.pos[1]))
         m_to_degree = np.array([m_to_degree_lon, self.m_to_degree, 1.0])
                       
-        self.isonland(self.pos, gridu, gridt, u)
+#        self.isonland(self.pos, gridu, gridt, u)
+                      
+        
+        # check for heat death
+        
+#        print self.kpos,self.jpos,self.ipos
+#        print temperature[self.kpos,self.jpos,self.ipos]
+        
+        self.isdead = (
+            (temperature[self.kpos,self.jpos,self.ipos] > self.t_upper 
+            or temperature[self.kpos,self.jpos,self.ipos] < self.t_lower)
+            )
+                      
+        if self.isdead:
+            return False
 
         # advection
         self.advection(gridt, u, v, w)
@@ -285,6 +326,8 @@ class Larva:
             self.xlat_history.append(self.pos[1])
             self.depth_history.append(self.pos[2])
             self.bed_history.append(0)
+            # out of grid, just repeat final temperature
+            self.temperature_history.append(self.temperature_history[-1])
             return True
             
         # test if advected on to land
@@ -337,6 +380,8 @@ class Larva:
             self.xlat_history.append(self.pos[1])
             self.depth_history.append(self.pos[2])
             self.bed_history.append(0)
+            # out of grid, just repeat final temperature
+            self.temperature_history.append(self.temperature_history[-1])
             return True
             
         # test if diffused on to land
@@ -365,6 +410,10 @@ class Larva:
             self.bed_history.append(1)
         else:
             self.bed_history.append(0)
+        # find position in grid
+        self.update_kji(gridt)
+        self.temperature_history.append(
+                    temperature[self.kpos,self.jpos,self.ipos])
         
         return False
         
@@ -397,6 +446,7 @@ class Larval_tracks:
         self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
+           
 
     def get_lon(self):
         return self.lon

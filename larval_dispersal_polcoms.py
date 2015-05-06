@@ -36,8 +36,8 @@ from larva_class import Larva
 
 # read in run data file
 
-run_dir = ('C:/Users/af26/Documents/PythonScripts/LarvalDispersal/'
-            + 'polcoms1993/Run_20150422/')
+run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
+            + 'polcoms1994/test_temp/')
 
 input_data_file = open(run_dir + 'input.dat', 'r')
 
@@ -46,6 +46,8 @@ input_dict = {}
 for line in input_data_file:
     wordlist = line.split()
     input_dict[wordlist[0]] = wordlist[-1]
+    
+print input_dict
     
 track_output_dir = run_dir + 'Trackdata/'
 
@@ -79,9 +81,9 @@ KMZ = float(input_dict['KMZ'])
 
 KM = np.array([KMX, KMY, KMZ]) #constant diffusion coefficient m2/s
 
-VERTICAL_INTERP = bool(input_dict['VERTICAL_INTERP'])
-ANIMATE = bool(input_dict['ANIMATE'])
-DEATH = bool(input_dict['DEATH'])
+VERTICAL_INTERP = bool(int(input_dict['VERTICAL_INTERP']))
+ANIMATE = bool(int(input_dict['ANIMATE']))
+DEATH = bool(int(input_dict['DEATH']))
 
 # constants for larval behaviour
 # larvae released at bed, head upwards with increasing swim speeds up to 
@@ -110,31 +112,52 @@ if DEATH:
 else:
     NRUNDAYS = float(input_dict['NRUNDAYS'])
     
+# set temperature bounds for life
+# just set wide here, all larvae survive but temperature
+# along track is recorded for possible use later
+
+T_LOWER = -10.0
+T_UPPER = 100.0     
+    
+    
 # bring constants together for passing to larva class
 
 RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
 SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,DESCENDAGE,FULLDESCENDAGE,
               MINSETTLEAGE,DEADAGE]
+              
 
 def readVelocityData(nc_fid, n):
     '''
-    netcdf Dataset -> 3 * masked array[i,j,k]
+    netcdf Dataset -> 3 * masked array[k,j,i]
     Returns the 3-d  u and v velocity fields read from netcdf dataset 'nc_fid'.
     For the 'n'th day of the year. (Jan 1 = 1) 
     Vertical velocity w is set to zero - needs calculating from continuity.
-    Velocities are stored as barotropic and baroclinic components. 
-    Add for total (check this).
+    Velocities are stored as barotropic and total components. 
+    DO NOT add for total (check this).
     
     '''
 
-    u = nc_fidu.variables['U'][n-1,:,:,:]
-    v = nc_fidu.variables['V'][n-1,:,:,:]
+    u = nc_fid.variables['U'][n-1,:,:,:]
+    v = nc_fid.variables['V'][n-1,:,:,:]
 #    ub = nc_fidu.variables['UB'][n-1,:,:]
 #    vb = nc_fidu.variables['VB'][n-1,:,:]
                     
     w = u * 0.0
     
     return u, v, w
+    
+def readTemperatureData(nc_fid, n):
+    '''
+    netcdf Dataset -> 3 * masked array[k,j,i]
+    Returns the 3-d  temperature fields read from netcdf dataset 'nc_fid'.
+    For the 'n'th day of the year. (Jan 1 = 1) 
+    
+    '''
+
+    temperature = nc_fid.variables['temperature'][n-1,:,:,:]
+    
+    return temperature
     
 def read_shapefile(filename):
     sf = shapefile.Reader(filename)
@@ -164,7 +187,8 @@ def release_larvae(source, num, release_day):
                 if not gridu.is_on_land(i,j):
                     larvae_group.add(Larva([x, y, -1.0], [0.0,0.0,0.0],
                                            source, release_day, gridt,
-                                           RUN_CONST, SWIM_CONST))
+                                           RUN_CONST, SWIM_CONST,
+                                           temperature,T_LOWER,T_UPPER))
                     nlarvae = nlarvae + 1    
 
 def save_tracks_to_file(nc_outfile):
@@ -184,6 +208,7 @@ def save_tracks_to_file(nc_outfile):
     lat = nc_ofid.createVariable('latitude','f8',('nlarvae','time',))
     dep = nc_ofid.createVariable('depth','f8',('nlarvae','time',))
     bed = nc_ofid.createVariable('at bed','i',('nlarvae','time',))
+    temp = nc_ofid.createVariable('temperature','f8',('nlarvae','time',))
     rt = nc_ofid.createVariable('release day','i',('nlarvae',))
     fate = nc_ofid.createVariable('fate','S1',('nlarvae',))    
     
@@ -192,6 +217,7 @@ def save_tracks_to_file(nc_outfile):
     for larva in larvae_dead:
         x, y = larva.get_track()
         z, b = larva.get_depth_history()
+        t = larva.get_temperature_history()
         release_time = larva.get_release_day()
         state = 'D'
            
@@ -199,6 +225,8 @@ def save_tracks_to_file(nc_outfile):
         lat[i,0:len(y)] = y[0:len(y)]
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
+        temp[i,0:len(t)] = t[0:len(t)]
+        
         rt[i] = release_time
         fate[i] = state
         
@@ -207,6 +235,7 @@ def save_tracks_to_file(nc_outfile):
     for larva in larvae_outofarea:
         x, y = larva.get_track()
         z, b = larva.get_depth_history()
+        t = larva.get_temperature_history()
         release_time = larva.get_release_day()
         state = 'L'
            
@@ -214,6 +243,7 @@ def save_tracks_to_file(nc_outfile):
         lat[i,0:len(y)] = y[0:len(y)]
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
+        temp[i,0:len(t)] = t[0:len(t)]
         rt[i] = release_time
         fate[i] = state
         
@@ -222,6 +252,7 @@ def save_tracks_to_file(nc_outfile):
     for larva in larvae_group:
         x, y = larva.get_track()
         z, b = larva.get_depth_history()
+        t = larva.get_temperature_history()
         release_time = larva.get_release_day()
         state = 'A'
            
@@ -229,6 +260,7 @@ def save_tracks_to_file(nc_outfile):
         lat[i,0:len(y)] = y[0:len(y)]
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
+        temp[i,0:len(t)] = t[0:len(t)]
         rt[i] = release_time
         fate[i] = state
         
@@ -283,6 +315,7 @@ for line in mpa_name_file:
     # read in the opening day's data
     
     u, v, w = readVelocityData(nc_fidu,STARTDAY)
+    temperature = readTemperatureData(nc_fidt,STARTDAY)
     
     # initialise larvae. 
     # Using grids of larvae at the same depth around a central point.
@@ -308,7 +341,8 @@ for line in mpa_name_file:
     #    print runtime, rundays
         
         for larva in set(larvae_group):
-            left = larva.update(DT, rundays, gridu, gridt, u, v, w)
+            left = larva.update(DT, rundays, gridu, gridt, 
+                                u, v, w, temperature)
             if left:
                 larvae_outofarea.add(larva)
                 larvae_group.remove(larva)
@@ -323,6 +357,7 @@ for line in mpa_name_file:
             day = day + 1
 #            print day
             u, v, w = readVelocityData(nc_fidu,day)
+            temperature = readTemperatureData(nc_fidt,day)
             
         # release a new batch of larvae if still in RELEASE_WINDOW
             if int(round(rundays)) < RELEASE_WINDOW:

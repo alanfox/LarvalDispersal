@@ -37,7 +37,9 @@ from larva_class import Larva
 # read in run data file
 
 run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1994/test_temp/')
+            + 'polcoms1993/Run_BF100000larvae/')
+
+log_file = open(run_dir + 'log.dat', 'w')
 
 input_data_file = open(run_dir + 'input.dat', 'r')
 
@@ -47,7 +49,7 @@ for line in input_data_file:
     wordlist = line.split()
     input_dict[wordlist[0]] = wordlist[-1]
     
-print input_dict
+log_file.write(str(input_dict))
     
 track_output_dir = run_dir + 'Trackdata/'
 
@@ -188,7 +190,8 @@ def release_larvae(source, num, release_day):
                     larvae_group.add(Larva([x, y, -1.0], [0.0,0.0,0.0],
                                            source, release_day, gridt,
                                            RUN_CONST, SWIM_CONST,
-                                           temperature,T_LOWER,T_UPPER))
+                                           temperature,T_LOWER,T_UPPER
+                                           ))
                     nlarvae = nlarvae + 1    
 
 def save_tracks_to_file(nc_outfile):
@@ -368,6 +371,8 @@ for line in mpa_name_file:
     track_outfile = track_output_dir + MPA_SOURCE + '.nc'
 
     save_tracks_to_file(track_outfile)
+    
+log_file.close()
 
     
 

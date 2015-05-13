@@ -15,6 +15,8 @@ from Grid_class import Grid
 
 """
 import numpy as np
+import scipy.optimize as syop
+
     
 class Grid:
 
@@ -172,4 +174,41 @@ class Grid:
         d = self.get_depths_at_point(lon,lat)
         
         return np.searchsorted(-d, -dep) - 1
+
+    def get_kindex_1(self,lon,lat,dep):
+        
+        # Modified level finder which works by finding the root of the
+        # expression for s in terms of sigma. Slightly more expensive
+        # but could be useful for tests of vertical interpolation I 
+        # think (using sigma levels).
+        
+        def f_builder_1(s,hij):
+            B = 0.05
+            theta = 8.0
+            hc = 150.0
+            # builds the function finding the root of 0 = f(sigma) - s
+            # needs to be built as it involves hij
+            def f2(sigma):
+                h = (hij - hc)/hij
+                Ck1 = (1.0 - B) * np.sinh(theta * sigma) / np.sinh(theta)
+                Ck2 = (B * (np.tanh(theta * (sigma + 0.5)) - np.tanh(theta * 0.5)) / 
+                           (2 * np.tanh(0.5* theta)))
+                           
+                Ck = Ck1 + Ck2
+                return (sigma + h * (Ck - sigma)) - s
+            return f2
+
+        N = 40    
+        hc = 150.0
+        hij = self.get_total_depth_at_point(lon,lat)
+        if hij <= hc:
+            return N - 1 -int(dep//(hij/N))
+        else:
+            s = -1.0 *  dep / hij
+            f1 = f_builder_1(s, hij) 
+            z = syop.brentq(f1,-1.1,0.1)
+            
+            
+            return int((N * (z + 1.0))//1)
+
 

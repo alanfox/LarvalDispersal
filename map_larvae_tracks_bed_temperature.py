@@ -21,7 +21,7 @@ MPA_SOURCE = 'The Barra Fan and Hebrides Terrace Seamount'
 year = 1993
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF300larvae_advect_linear/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_advect_cubic/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 

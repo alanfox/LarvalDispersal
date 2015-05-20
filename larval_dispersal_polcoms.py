@@ -37,7 +37,7 @@ from larva_class import Larva
 # read in run data file
 
 run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1993/Run_BF300larvae_advect_cubic/')
+            + 'polcoms1993/Run_BF300larvae_advect_linear/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 

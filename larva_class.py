@@ -165,9 +165,9 @@ class Larva:
 #        self.logfile.write('w2 ' + str(w2)+ '\n')
     
         # linear interpolation 
-        self.fu2 = interp1d(zlevs, u2, kind = 'cubic')
-        self.fv2 = interp1d(zlevs, v2, kind = 'cubic')
-        self.fw2 = interp1d(zlevs, w2, kind = 'cubic')
+        self.fu2 = interp1d(zlevs, u2, kind = 'linear')
+        self.fv2 = interp1d(zlevs, v2, kind = 'linear')
+        self.fw2 = interp1d(zlevs, w2, kind = 'linear')
 
     def update_kji(self,gridt,gridu):
         

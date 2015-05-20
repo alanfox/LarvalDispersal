@@ -23,7 +23,7 @@ class Larva:
     
     # each larva will be an instance of this class
 
-    def __init__(self, pos, vel, source, release_day, gridt, 
+    def __init__(self, pos, vel, source, release_day, gridt, gridu,
                  RUN_CONST, SWIM_CONST, temperature, T_LOWER, T_UPPER):
 
         self.age = 0.0
@@ -50,18 +50,24 @@ class Larva:
         self.source = source
         self.i = 10000
         self.j = 10000
+        # nearest u gridpoint
         self.ipos = 10000
         self.jpos = 10000
         self.kpos = 10000
+        self.kpos_real = 10000.00
+        # nearest t gridpoint
+        self.ipost = 10000
+        self.jpost = 10000
+        
         self.fu2 = []
         self.fv2 = []
         self.fw2 = []
         
-        # find initial position in grid
-        self.update_kji(gridt)
+        # find initial position in grid - updates ipos and ipost etc
+        self.update_kji(gridt,gridu)
         
         self.temperature_history.append(
-                        temperature[self.kpos,self.jpos,self.ipos])
+                        temperature[self.kpos,self.jpost,self.ipost])
 #        print self.kpos,self.jpos,self.ipos
 #        print temperature[self.kpos,self.jpos,self.ipos]
         
@@ -94,6 +100,10 @@ class Larva:
 #        self.minsettleage = MINSETTLEAGE
 #        self.deadage = DEADAGE
         
+#        self.run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
+#            + 'polcoms1993/Run_BF300larvae_advect_linear/')
+#        self.logfile = open(self.run_dir + 'log' +str(int(self.pos[2]))+'.dat', 'w')
+#        self.logfile.write(str(self.pos[2]) + '\n')
         
     def bed_release(self, position, gridt):
         
@@ -129,36 +139,49 @@ class Larva:
     def get_velocity(self):
         return self.vel
     
-    def vertical_interpolation(self,i,j):
+    def vertical_interpolation(self,i,j,u,v,w):
         # extend arrays above surface and below bed for interpolation
-        # only does this when the larva has moved horizontally to a new 
-        # box. Otherwise uses stored values. To reduce recalculation.
+        # interpolation done in sigma space, where velocities stored at 
+        # 0.5,1.5,2.5.....39.5
     
-        if ((i != self.i) or (j != self.j)):
-            self.i = i
-            self.j = j
-            nz = len(gridk[2])
-            zlevs = np.insert(np.append(gridk[2],6000.0),0,-5.0)
-            u1 = u[i,j]
-            v1 = v[i,j]
-            w1 = w[i,j]
-            u2 = np.insert(np.append(u1,u1[nz-1]),0,u1[0])
-            v2 = np.insert(np.append(v1,v1[nz-1]),0,v1[0])
-            w2 = np.insert(np.append(w1,w1[nz-1]),0,w1[0])
+#        if ((i != self.i) or (j != self.j)):
+        self.i = i
+        self.j = j
+        u1 = u[:,j,i]
+        v1 = v[:,j,i]
+        w1 = w[:,j,i]
+        nz = len(u1)
+        zlevs = np.linspace(-0.5,40.5,42)
+        u2 = np.insert(np.append(u1,u1[nz-1]),0,u1[0])
+        v2 = np.insert(np.append(v1,v1[nz-1]),0,v1[0])
+        w2 = np.insert(np.append(w1,w1[nz-1]),0,w1[0])
         
-            # cubic spline interpolation 
-            self.fu2 = interp1d(zlevs, u2, kind = 'linear')
-            self.fv2 = interp1d(zlevs, v2, kind = 'linear')
-            self.fw2 = interp1d(zlevs, w2, kind = 'linear')
+#        self.logfile.write('u1 ' + str(u1)+ '\n')
+#        self.logfile.write('v1 ' + str(v1)+ '\n')
+#        self.logfile.write('w1 '+ str(w1)+ '\n')
+##        
+#        self.logfile.write('u2 ' + str(u2)+ '\n')
+#        self.logfile.write('v2 ' + str(v2)+ '\n')
+#        self.logfile.write('w2 ' + str(w2)+ '\n')
+    
+        # linear interpolation 
+        self.fu2 = interp1d(zlevs, u2, kind = 'cubic')
+        self.fv2 = interp1d(zlevs, v2, kind = 'cubic')
+        self.fw2 = interp1d(zlevs, w2, kind = 'cubic')
 
-    def update_kji(self,gridt):
+    def update_kji(self,gridt,gridu):
         
         # find the position on the grid. Moved here (out of 'advection')
         # because it is needed for assessing temperature and for
         # advection. Finding k is expensive
         
         self.ipos, self.jpos = gridt.get_index_ne(self.pos[0], self.pos[1])
-        self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
+        self.ipost, self.jpost = gridu.get_index_ne(self.pos[0], self.pos[1])
+        self.ipost = self.ipost + 1
+        self.jpost = self.jpost + 1
+#        self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
+        self.kpos, self.kpos_real = gridt.get_kindex_1(
+                            self.pos[0], self.pos[1], self.pos[2])
         
         return
 
@@ -175,13 +198,31 @@ class Larva:
         
         if self.vertical_interp:
             # interpolate velocities in the vertical
-#            self.vertical_interpolation(i,j)
-#                  
-#            self.vel[0] = self.fu2(self.pos[2])
-#            self.vel[1] = self.fv2(self.pos[2])
-#            self.vel[2] = self.fw2(self.pos[2])
-            pass
+            self.vertical_interpolation(i,j,u,v,w)
             
+            k = self.kpos
+            
+#            self.logfile.write('kpos ' + str(self.kpos) 
+#                           + ' kpos_real ' + str(self.kpos_real)+ '\n')
+#
+#            self.logfile.write('u[k,j,i]   ' + str(u[k,j,i])+ '\n')
+#            self.logfile.write('v[k,j,i]   ' + str(v[k,j,i])+ '\n')
+#            self.logfile.write('w[k,j,i]   ' + str(w[k,j,i])+ '\n')
+##            
+#            self.logfile.write('u[k+1,j,i] ' + str(u[k+1,j,i])+ '\n')
+#            self.logfile.write('v[k+1,j,i] ' + str(v[k+1,j,i])+ '\n')
+#            self.logfile.write('w[k+1,j,i] ' + str(w[k+1,j,i])+ '\n')
+##            
+            
+                  
+            self.vel[0] = self.fu2(self.kpos_real)
+            self.vel[1] = self.fv2(self.kpos_real)
+            self.vel[2] = self.fw2(self.kpos_real)
+            
+#            self.logfile.write('self.vel[0] ' + str(self.vel[0])+ '\n')
+#            self.logfile.write('self.vel[1] ' + str(self.vel[1])+ '\n')
+#            self.logfile.write('self.vel[2] ' + str(self.vel[2])+ '\n')
+#            
         else:    
             # or just go with box larva is in
             # k box with larva in
@@ -411,7 +452,7 @@ class Larva:
         else:
             self.bed_history.append(0)
         # find position in grid
-        self.update_kji(gridt)
+        self.update_kji(gridt,gridu)
         self.temperature_history.append(
                     temperature[self.kpos,self.jpos,self.ipos])
         

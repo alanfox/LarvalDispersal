@@ -33,10 +33,10 @@ for fate in fates:
     xdatarange = np.ma.flatnotmasked_edges(x)
     ydatarange = np.ma.flatnotmasked_edges(y)
     
-#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
-#    end_latlon = (y[ydatarange[1]], x[xdatarange[1]])
     start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
-    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
+    end_latlon = (y[ydatarange[1]], x[xdatarange[1]])
+#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
+#    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
 #    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
 #    end_latlon = (y[ydatarange[0]], x[xdatarange[1]])
     
@@ -44,12 +44,12 @@ for fate in fates:
     
     i = i+1
     
-print '300 larvae mean and max ', np.mean(distances300), np.max(distances300)
+print '1993 300 larvae, old,  mean and max ', np.mean(distances300), np.max(distances300)
 
 nc_fid.close()
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF1000larvae/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_nointerp/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -65,10 +65,10 @@ for fate in fates:
     xdatarange = np.ma.flatnotmasked_edges(x)
     ydatarange = np.ma.flatnotmasked_edges(y)
     
-#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
-#    end_latlon = (y[ydatarange[1]], x[xdatarange[1]])
     start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
-    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
+    end_latlon = (y[ydatarange[1]], x[xdatarange[1]])
+#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
+#    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
 #    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
 #    end_latlon = (y[ydatarange[0]], x[xdatarange[1]])
     
@@ -76,12 +76,12 @@ for fate in fates:
     
     i = i+1
     
-print '1000 larvae mean and max ', np.mean(distances1000), np.max(distances1000)
+print '1993 300 larvae, nointerp, mean and max ', np.mean(distances1000), np.max(distances1000)
 
 nc_fid.close()
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF10000larvae/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_vinterp/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -97,10 +97,10 @@ for fate in fates:
     xdatarange = np.ma.flatnotmasked_edges(x)
     ydatarange = np.ma.flatnotmasked_edges(y)
     
-#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
-#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
     start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
-    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
+    end_latlon = (y[ydatarange[1]], x[xdatarange[1]])
+#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
+#    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
 #    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
 #    end_latlon = (y[ydatarange[0]], x[xdatarange[1]])
 
@@ -108,12 +108,44 @@ for fate in fates:
     
     i = i+1
     
-print '10000 larvae mean and max ', np.mean(distances10000), np.max(distances10000)
+print '1993 300 larvae, vinterp, mean and max ', np.mean(distances10000), np.max(distances10000)
+
+nc_fid.close()
+
+nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
+           'polcoms1993/Run_BF300larvae_nointerp_get_kindex/Trackdata/' + MPA_SOURCE + '.nc')
+nc_fid = Dataset(nc_file, 'r')
+
+
+fates = nc_fid.variables['fate'][:]
+
+i = 0
+distances100000 = []
+for fate in fates:
+    x = nc_fid.variables['longitude'][i,:]
+    y = nc_fid.variables['latitude'][i,:]
+
+# Find the indices of the first and last unmasked values
+    xdatarange = np.ma.flatnotmasked_edges(x)
+    ydatarange = np.ma.flatnotmasked_edges(y)
+    
+    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
+    end_latlon = (y[ydatarange[1]], x[xdatarange[1]])
+#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
+#    end_latlon = (y[ydatarange[1]], x[xdatarange[0]])
+#    start_latlon = (y[ydatarange[0]], x[xdatarange[0]])
+#    end_latlon = (y[ydatarange[0]], x[xdatarange[1]])
+
+    distances100000.append(vincenty(start_latlon, end_latlon).kilometers)
+    
+    i = i+1
+    
+print '1993 300 larvae, spline, mean and max ', np.mean(distances100000), np.max(distances100000)
 
 nc_fid.close()
 
 # the histogram of the data
-n, bins, patches = plt.hist((distances300,distances1000,distances10000), 
+n, bins, patches = plt.hist((distances300,distances1000,distances10000,distances100000), 
                             range(0,550,50), normed=1, alpha=0.75)
 
 plt.xlabel('Distance km')

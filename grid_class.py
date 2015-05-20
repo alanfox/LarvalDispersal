@@ -202,13 +202,13 @@ class Grid:
         hc = 150.0
         hij = self.get_total_depth_at_point(lon,lat)
         if hij <= hc:
-            return N - 1 -int(dep//(hij/N))
+            return int(N - dep/(hij/N)), N - dep/(hij/N)
         else:
             s = -1.0 *  dep / hij
             f1 = f_builder_1(s, hij) 
             z = syop.brentq(f1,-1.1,0.1)
             
             
-            return int((N * (z + 1.0))//1)
+            return int(N * (z + 1.0)), N * (z + 1.0)
 
 

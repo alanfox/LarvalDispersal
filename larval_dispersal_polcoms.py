@@ -37,7 +37,7 @@ from larva_class import Larva
 # read in run data file
 
 run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1993/Run_BF100000larvae/')
+            + 'polcoms1993/Run_BF300larvae_advect_cubic/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -187,8 +187,16 @@ def release_larvae(source, num, release_day):
             # check not on land
                 i,j = gridt.get_index_ne(x,y)
                 if not gridu.is_on_land(i,j):
-                    larvae_group.add(Larva([x, y, -1.0], [0.0,0.0,0.0],
-                                           source, release_day, gridt,
+                    #for release at bed
+                    z = -1.0
+                    # for release at random depth 10 - 100 m
+                    # in here for test purposes really
+#                    dep = gridt.get_total_depth_at_point(x,y)
+#                    maxdep = max(100.0, dep)
+#                    z = np.random.uniform(10.0,maxdep)
+                    
+                    larvae_group.add(Larva([x, y, z], [0.0,0.0,0.0],
+                                           source, release_day, gridt, gridu,
                                            RUN_CONST, SWIM_CONST,
                                            temperature,T_LOWER,T_UPPER
                                            ))
@@ -203,7 +211,7 @@ def save_tracks_to_file(nc_outfile):
     if DEATH:
         maxt = int((DEADAGE + 1) * SECONDS_IN_DAY / DT)
     else:
-        maxt = int((NRUNDAYS) * SECONDS_IN_DAY / DT)
+        maxt = int((NRUNDAYS + 1) * SECONDS_IN_DAY / DT)
         
     time = nc_ofid.createDimension('time', maxt)
     nlarvae = nc_ofid.createDimension('nlarvae', nl)

@@ -18,10 +18,10 @@ from mpa_class import Mpa
 
 MPA_SOURCE = 'The Barra Fan and Hebrides Terrace Seamount'
 
-year = 1994
+year = 1993
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1994/test_temp/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_advect_linear/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -282,34 +282,34 @@ plt.ylim([ymax,ymin])
 # this draws a temperature v time plot of the larvae
 #------------------------------------------------------------------------
 
-plt.figure()
-plt.title("POLCOMS model. Larval release through Feb " 
-          + str(year) + ". Larsson et al behaviour")
-plt.ylabel('temperature')
-plt.xlabel('time in days from release')
-i = 0
-for fate in fates:
-    z = nc_fid.variables['temperature'][i,:]
-    rt = nc_fid.variables['release day'][i]
-    at_bed = nc_fid.variables['at bed'][i,:]
-    
-# for colorline need to remove masked values
-    z1 = np.ma.compressed(z)
-    at_bed = np.ma.compressed(at_bed)
-    t = np.array(range(len(z1)))
-    t = rt + t/24.0 
-
-    colorline(t,z1,at_bed,cmap,norm)
-#    plt.plot(t,z)
-    i = i+1
-       
-# set plot limits
-ax = plt.gca()
-ax.autoscale(True)
-# reverse plot vertical axis
-ymin, ymax = plt.ylim()
-plt.ylim([ymax,ymin])
-
-plt.show()
-
-nc_fid.close()
+#plt.figure()
+#plt.title("POLCOMS model. Larval release through Feb " 
+#          + str(year) + ". Larsson et al behaviour")
+#plt.ylabel('temperature')
+#plt.xlabel('time in days from release')
+#i = 0
+#for fate in fates:
+#    z = nc_fid.variables['temperature'][i,:]
+#    rt = nc_fid.variables['release day'][i]
+#    at_bed = nc_fid.variables['at bed'][i,:]
+#    
+## for colorline need to remove masked values
+#    z1 = np.ma.compressed(z)
+#    at_bed = np.ma.compressed(at_bed)
+#    t = np.array(range(len(z1)))
+#    t = rt + t/24.0 
+#
+#    colorline(t,z1,at_bed,cmap,norm)
+##    plt.plot(t,z)
+#    i = i+1
+#       
+## set plot limits
+#ax = plt.gca()
+#ax.autoscale(True)
+## reverse plot vertical axis
+#ymin, ymax = plt.ylim()
+#plt.ylim([ymax,ymin])
+#
+#plt.show()
+#
+#nc_fid.close()

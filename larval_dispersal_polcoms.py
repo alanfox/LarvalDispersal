@@ -36,8 +36,11 @@ from larva_class import Larva
 
 # read in run data file
 
-run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1993/Run_BF300larvae_advect_nointerp/')
+# different paths for windows and linux machines
+
+#run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
+#            + 'polcoms1993/Run_BF300larvae_advect_nointerp/')
+run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -288,7 +291,11 @@ gridu = Grid(nc_fidu)
 # loop over protected areas, releasing larvae from each
         
 for line in mpa_name_file:
-    MPA_SOURCE = line[0:-1]
+
+# for some unknown reason linux needs to lose the last two characters here
+    
+#    MPA_SOURCE = line[0:-1]
+    MPA_SOURCE = line[0:-2]
     
     print MPA_SOURCE
     
@@ -299,35 +306,50 @@ for line in mpa_name_file:
     mpa_group = set([])
     
     # offshore SAC
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SAC_OFFSHORE_20121029_SIMPLE3')
+    # different file paths on linux machine
+
+#    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+    shapefile_root =   '/home/af26/Shapefiles/' #linux
+    
+    
+    shapes, records = read_shapefile(shapefile_root + 
+                    'UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/' + 
+                    'SCOTLAND_SAC_OFFSHORE_20121029_SIMPLE3')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'OFF_SAC'))
         
     # SAC with marine components
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SACs_withMarineComponents_20130821_SIMPLE3')
+    shapes, records = read_shapefile(shapefile_root + 
+                    'UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/' + 
+                    'SCOTLAND_SACs_withMarineComponents_20130821_SIMPLE3')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'MAR_SAC'))
         
     # Nature conservation MPA
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MPA_SCOTLAND_ESRI/MPA_SCOTLAND_SIMPLE3')
+    shapes, records = read_shapefile(shapefile_root + 
+                    'MPA_SCOTLAND_ESRI/MPA_SCOTLAND_SIMPLE3')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'MPA'))
         
     # Irish SACs
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
+    shapes, records = read_shapefile(shapefile_root + 
+                    'SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'IRISH'))
         
     # Mikael Dahl's lophelia sites
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/MikaelDahl_1')
+    shapes, records = read_shapefile(shapefile_root + 
+                    'MikaelDahl/MikaelDahl_1')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
         
+#    print MPA_SOURCE + ' 1'
     # read in the opening day's data
     
     u, v, w = readVelocityData(nc_fidu,STARTDAY)
     temperature = readTemperatureData(nc_fidt,STARTDAY)
     
+#    print MPA_SOURCE + ' 2'
     # initialise larvae. 
     # Using grids of larvae at the same depth around a central point.
     
@@ -338,6 +360,8 @@ for line in mpa_name_file:
     # seed larvae randomly in a particular mpa
     
     release_larvae(MPA_SOURCE,NUM_LARVAE, 0)
+
+#    print MPA_SOURCE + ' 3'
 
 # the main program loop            
             

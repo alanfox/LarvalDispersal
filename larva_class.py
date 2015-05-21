@@ -179,9 +179,14 @@ class Larva:
         self.ipost, self.jpost = gridu.get_index_ne(self.pos[0], self.pos[1])
         self.ipost = self.ipost + 1
         self.jpost = self.jpost + 1
-#        self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
-        self.kpos, self.kpos_real = gridt.get_kindex_1(
-                            self.pos[0], self.pos[1], self.pos[2])
+# two options for get_kindex. _1 version is needed for vertical
+# interpolation but is slower than standard version if no vertical
+# interpolation
+        if self.vertical_interpolation:
+            self.kpos, self.kpos_real = gridt.get_kindex_1(
+                                self.pos[0], self.pos[1], self.pos[2])
+        else:
+            self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
         
         return
 

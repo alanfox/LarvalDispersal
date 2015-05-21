@@ -16,12 +16,12 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from mpa_class import Mpa
 
-MPA_SOURCE = 'The Barra Fan and Hebrides Terrace Seamount'
+MPA_SOURCE = 'Scanner Pockmark'
 
-year = 1993
+year = 1990
 
-nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF300larvae_advect_linear/Trackdata/' + MPA_SOURCE + '.nc')
+nc_file = ('/home/af26/LarvalModelResults/' +
+           'Polcoms1990/Run_test/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -89,33 +89,43 @@ def clear_frame(ax=None):
 
 mpa_group = set([])
 
-# offshore SAC
-shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SAC_OFFSHORE_20121029_SIMPLE3')
+    # offshore SAC
+    # different file paths on linux machine
+
+#    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+shapefile_root =   '/home/af26/Shapefiles/' #linux
+
+shapes, records = read_shapefile(shapefile_root + 
+                'UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/' + 
+                'SCOTLAND_SAC_OFFSHORE_20121029_SIMPLE3')
 for i in range(len(shapes)):
     mpa_group.add(Mpa(shapes[i], records[i],'OFF_SAC'))
     
 # SAC with marine components
-shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SACs_withMarineComponents_20130821_SIMPLE3')
+shapes, records = read_shapefile(shapefile_root + 
+                'UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/' + 
+                'SCOTLAND_SACs_withMarineComponents_20130821_SIMPLE3')
 for i in range(len(shapes)):
     mpa_group.add(Mpa(shapes[i], records[i],'MAR_SAC'))
     
 # Nature conservation MPA
-shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MPA_SCOTLAND_ESRI/MPA_SCOTLAND_SIMPLE3')
+shapes, records = read_shapefile(shapefile_root + 
+                'MPA_SCOTLAND_ESRI/MPA_SCOTLAND_SIMPLE3')
 for i in range(len(shapes)):
     mpa_group.add(Mpa(shapes[i], records[i],'MPA'))
     
-# Other lophelia areas
-shapes, records = read_shapefile('C:/Users/af26/Shapefiles/SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
+# Irish SACs
+shapes, records = read_shapefile(shapefile_root + 
+                'SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
 for i in range(len(shapes)):
     mpa_group.add(Mpa(shapes[i], records[i],'IRISH'))
     
-# Scandinavian sites
-shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/Mikaeldahl_1')
+# Mikael Dahl's lophelia sites
+shapes, records = read_shapefile(shapefile_root + 
+                'MikaelDahl/MikaelDahl_1')
 for i in range(len(shapes)):
     mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
     
-
-
 #---------------------------------------------------------------------
 # plot the tracks
 #---------------------------------------------------------------------

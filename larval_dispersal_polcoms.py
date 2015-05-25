@@ -37,7 +37,7 @@ from larva_class import Larva
 # read in run data file
 
 run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1990/Run_1000_baseline/')
+            + 'polcoms1991/Run_target_depth_test/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -97,6 +97,7 @@ DEATH = bool(int(input_dict['DEATH']))
 # average age SWIMMAX. Then swimming gradually directed more downwards from 
 # age DESCENDAGE up to DEADAGE.
 
+TARGETDEPTH = float(input_dict['TARGETDEPTH'])    # target depth
 SWIMSLOW = float(input_dict['SWIMSLOW'])          #initial swimming speed
 SWIMFAST = float(input_dict['SWIMFAST'])      # max swimming speed
 SWIMSTART = float(input_dict['SWIMSTART'])         #age in days at which start swimming
@@ -130,8 +131,9 @@ T_UPPER = 100.0
 # bring constants together for passing to larva class
 
 RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
-SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,DESCENDAGE,DESCENDAGERANGE,
-              MINSETTLEAGE,DEADAGE]
+SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,
+              DESCENDAGE,DESCENDAGERANGE,
+              MINSETTLEAGE,DEADAGE,TARGETDEPTH]
               
 
 def readVelocityData(nc_fid, n):

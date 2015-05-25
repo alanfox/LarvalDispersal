@@ -92,6 +92,7 @@ class Larva:
                                                 self.descendagerange)
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
+        self.targetdepth = SWIM_CONST[8]
         self.t_lower = T_LOWER
         self.t_upper = T_UPPER
                 
@@ -254,17 +255,14 @@ class Larva:
         
         # set percentage chance of heading upwards. If it doesn't go up it goes down.
         
-        # set random swimming if in surface layer
+        # set random swimming if at target depth
         swim = np.zeros((3),dtype = float)                          
-        if (self.pos[2] < 10.0):
-            percent_up = 0.5
+        percent_up = 0.5
+        factor = self.at_target()
+        if (self.age > self.swimstart and self.age < self.descendage):
+            percent_up = percent_up + factor * 0.5
         else:
-            if (self.age < self.swimstart):
-                percent_up = 0.5
-            elif (self.age < self.descendage):
-                percent_up = 1.0
-            else:
-                percent_up = 0.0
+            percent_up = 0.0
                                                
         if (self.age < self.swimstart):
             swimspeed = self.swimslow
@@ -320,6 +318,17 @@ class Larva:
         
     def dead(self):
         return (self.isdead or (self.age > self.deadage))
+        
+    def at_target(self):
+        # tests depth against target. Returns 1 if below target depth, 
+        # -1 if above and 0 if at (within 10 m) of target.
+    
+        if self.pos[2] > self.targetdepth + 10.0:
+            return 1.0
+        elif self.pos[2] < self.targetdepth - 10.0:
+            return -1.0
+        else:
+            return 0.0
                                         
     def update(self, dt, rundays, gridu, gridt, u, v, w, temperature):
         

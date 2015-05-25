@@ -16,12 +16,12 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from mpa_class import Mpa
 
-MPA_SOURCE = 'East Mingulay'
+MPA_SOURCE = 'Wyville Thomson Ridge'
 
-year = 1990
+year = 1991
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1990/Run_test/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1991/Run_target_depth_test/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 

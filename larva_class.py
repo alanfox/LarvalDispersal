@@ -480,8 +480,10 @@ class Larval_tracks:
         self.swimfast = SWIM_CONST[1] 
         self.swimstart = SWIM_CONST[2]
         self.swimmax = SWIM_CONST[3] + np.random.normal(0.0,1.0)
-        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,1.0)
-        self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
+        self.descendagerange = SWIM_CONST[5]
+        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,
+                                                self.descendagerange)
+        self.minsettleage = SWIM_CONST[6]
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
            

@@ -37,7 +37,7 @@ from larva_class import Larva
 # read in run data file
 
 run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1990/Run_test/')
+            + 'polcoms1990/Run_1000_baseline/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -50,6 +50,7 @@ for line in input_data_file:
     input_dict[wordlist[0]] = wordlist[-1]
     
 log_file.write(str(input_dict))
+#log_file.close()
     
 track_output_dir = run_dir + 'Trackdata/'
 
@@ -59,6 +60,10 @@ nc_fileu = input_dict['nc_fileu']
 nc_filet = input_dict['nc_filet']
 nc_fidu = Dataset(nc_fileu, 'r')
 nc_fidt = Dataset(nc_filet, 'r')
+nc_filedzu = input_dict['nc_filedzu']
+nc_filedzt = input_dict['nc_filedzt']
+nc_fiddzu = Dataset(nc_filedzu, 'r')
+nc_fiddzt = Dataset(nc_filedzt, 'r')
 
 # larvae are released from MPA_SOURCE
 
@@ -125,7 +130,7 @@ T_UPPER = 100.0
 # bring constants together for passing to larva class
 
 RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
-SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,DESCENDAGE,FULLDESCENDAGE,
+SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,DESCENDAGE,DESCENDAGERANGE,
               MINSETTLEAGE,DEADAGE]
               
 
@@ -282,8 +287,11 @@ def save_tracks_to_file(nc_outfile):
     
     # read in and calculate the model grid variables
     
-gridt = Grid(nc_fidt)
-gridu = Grid(nc_fidu)
+gridt = Grid(nc_fiddzt)
+gridu = Grid(nc_fiddzu)
+
+nc_fiddzt.close()
+nc_fiddzu.close()
     
 # loop over protected areas, releasing larvae from each
         

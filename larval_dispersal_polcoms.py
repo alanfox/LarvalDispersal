@@ -37,7 +37,7 @@ from larva_class import Larva
 # read in run data file
 
 run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1993/Run_BF300larvae_advect_nointerp/')
+            + 'polcoms1990/Run_test/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -98,7 +98,7 @@ SWIMSTART = float(input_dict['SWIMSTART'])         #age in days at which start s
 SWIMMAX = float(input_dict['SWIMMAX'])          #average age in days at which max swimming speed is reached
 DESCENDAGE = float(input_dict['DESCENDAGE'])       # average age at which probability of heading down starts
                         # to increase
-FULLDESCENDAGE = float(input_dict['FULLDESCENDAGE'])    # now fully heading down
+DESCENDAGERANGE = float(input_dict['DESCENDAGERANGE'])    # now fully heading down
 MINSETTLEAGE = float(input_dict['MINSETTLEAGE'])     # minimum age at which can settle given suitable 
                         # habitat
 DEADAGE = float(input_dict['DEADAGE'])          # Average age at which dead
@@ -338,6 +338,11 @@ for line in mpa_name_file:
     # seed larvae randomly in a particular mpa
     
     release_larvae(MPA_SOURCE,NUM_LARVAE, 0)
+    
+    
+    # reset random seed
+    
+#    np.random.seed(272727)
 
 # the main program loop            
             

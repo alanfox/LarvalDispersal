@@ -85,9 +85,11 @@ class Larva:
         self.swimslow = SWIM_CONST[0]
         self.swimfast = SWIM_CONST[1] 
         self.swimstart = SWIM_CONST[2]
+        # random element means larvae reach milestones at different times
         self.swimmax = SWIM_CONST[3] + np.random.normal(0.0,1.0)
-        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,1.0)
-        self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
+        self.descendagerange = SWIM_CONST[5]
+        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,
+                                                self.descendagerange)
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
         self.t_lower = T_LOWER
@@ -179,9 +181,9 @@ class Larva:
         self.ipost, self.jpost = gridu.get_index_ne(self.pos[0], self.pos[1])
         self.ipost = self.ipost + 1
         self.jpost = self.jpost + 1
-#        self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
-        self.kpos, self.kpos_real = gridt.get_kindex_1(
-                            self.pos[0], self.pos[1], self.pos[2])
+        self.kpos = gridt.get_kindex(self.pos[0], self.pos[1], self.pos[2])
+#        self.kpos, self.kpos_real = gridt.get_kindex_1(
+#                            self.pos[0], self.pos[1], self.pos[2])
         
         return
 
@@ -260,15 +262,10 @@ class Larva:
             if (self.age < self.swimstart):
                 percent_up = 0.5
             elif (self.age < self.descendage):
-                percent_up = 0.75
-            elif (self.age > self.fulldescendage):
-                percent_up = 0.25
+                percent_up = 1.0
             else:
-                percent_up = 0.75 - 0.5 * ((self.age - self.descendage) 
-                                      / (self.fulldescendage - self.descendage))
-                                      
-               
-                
+                percent_up = 0.0
+                                               
         if (self.age < self.swimstart):
             swimspeed = self.swimslow
         elif (self.age > self.swimmax):
@@ -288,7 +285,7 @@ class Larva:
 #                     + np.random.normal(0.0,0.2)))
         swimspeed = (swimspeed * 
                     ((percent_up - (1.0 - percent_up))
-                     + np.random.normal(0.0,0.25)))
+                     + np.random.normal(0.0,0.5)))
         swim[2] = swimspeed                                
                                         
         return swim              

@@ -17,7 +17,7 @@ MPA_SOURCE = 'The Barra Fan and Hebrides Terrace Seamount'
 year = 1993
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF300larvae/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_advect_nointerp/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -44,12 +44,12 @@ for fate in fates:
     
     i = i+1
     
-print '1993 300 larvae, old,  mean and max ', np.mean(distances300), np.max(distances300)
+print '1993 300 larvae, nointerp,  mean and max ', np.mean(distances300), np.max(distances300)
 
 nc_fid.close()
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF300larvae_nointerp/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_advect_linear/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -76,12 +76,12 @@ for fate in fates:
     
     i = i+1
     
-print '1993 300 larvae, nointerp, mean and max ', np.mean(distances1000), np.max(distances1000)
+print '1993 300 larvae, linear, mean and max ', np.mean(distances1000), np.max(distances1000)
 
 nc_fid.close()
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF300larvae_vinterp/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_advect_cubic/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -108,12 +108,12 @@ for fate in fates:
     
     i = i+1
     
-print '1993 300 larvae, vinterp, mean and max ', np.mean(distances10000), np.max(distances10000)
+print '1993 300 larvae, cubic, mean and max ', np.mean(distances10000), np.max(distances10000)
 
 nc_fid.close()
 
 nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-           'polcoms1993/Run_BF300larvae_nointerp_get_kindex/Trackdata/' + MPA_SOURCE + '.nc')
+           'polcoms1993/Run_BF300larvae_advect_nointerp2/Trackdata/' + MPA_SOURCE + '.nc')
 nc_fid = Dataset(nc_file, 'r')
 
 
@@ -140,7 +140,7 @@ for fate in fates:
     
     i = i+1
     
-print '1993 300 larvae, spline, mean and max ', np.mean(distances100000), np.max(distances100000)
+print '1993 300 larvae,nointerp 2, mean and max ', np.mean(distances100000), np.max(distances100000)
 
 nc_fid.close()
 

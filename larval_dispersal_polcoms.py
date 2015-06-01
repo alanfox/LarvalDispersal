@@ -154,7 +154,7 @@ def readVelocityData(nc_fid, n):
     
     return u, v, w
     
-def readTemperatureData(nc_fid, n):
+def readTSData(nc_fid, n):
     '''
     netcdf Dataset -> 3 * masked array[k,j,i]
     Returns the 3-d  temperature fields read from netcdf dataset 'nc_fid'.
@@ -163,8 +163,9 @@ def readTemperatureData(nc_fid, n):
     '''
 
     temperature = nc_fid.variables['temperature'][n-1,:,:,:]
+    salinity = nc_fid.variables['salinity'][n-1,:,:,:]
     
-    return temperature
+    return temperature, salinity
     
 def read_shapefile(filename):
     sf = shapefile.Reader(filename)
@@ -203,7 +204,8 @@ def release_larvae(source, num, release_day):
                     larvae_group.add(Larva([x, y, z], [0.0,0.0,0.0],
                                            source, release_day, gridt, gridu,
                                            RUN_CONST, SWIM_CONST,
-                                           temperature,T_LOWER,T_UPPER
+                                           temperature,salinity,
+                                           T_LOWER,T_UPPER
                                            ))
                     nlarvae = nlarvae + 1    
 
@@ -334,7 +336,7 @@ for line in mpa_name_file:
     # read in the opening day's data
     
     u, v, w = readVelocityData(nc_fidu,STARTDAY)
-    temperature = readTemperatureData(nc_fidt,STARTDAY)
+    temperature, salinity = readTSData(nc_fidt,STARTDAY)
     
     # initialise larvae. 
     # Using grids of larvae at the same depth around a central point.
@@ -366,7 +368,7 @@ for line in mpa_name_file:
         
         for larva in set(larvae_group):
             left = larva.update(DT, rundays, gridu, gridt, 
-                                u, v, w, temperature)
+                                u, v, w, temperature, salinity)
             if left:
                 larvae_outofarea.add(larva)
                 larvae_group.remove(larva)
@@ -381,7 +383,7 @@ for line in mpa_name_file:
             day = day + 1
 #            print day
             u, v, w = readVelocityData(nc_fidu,day)
-            temperature = readTemperatureData(nc_fidt,day)
+            temperature, salinity = readTSData(nc_fidt,day)
             
         # release a new batch of larvae if still in RELEASE_WINDOW
             if int(round(rundays)) < RELEASE_WINDOW:

@@ -24,7 +24,7 @@ class Larva:
     # each larva will be an instance of this class
 
     def __init__(self, pos, vel, source, release_day, gridt, gridu,
-                 RUN_CONST, SWIM_CONST, temperature, T_LOWER, T_UPPER):
+                 RUN_CONST, SWIM_CONST, temperature, salinity, T_LOWER, T_UPPER):
 
         self.age = 0.0
         self.release_day = release_day
@@ -42,6 +42,7 @@ class Larva:
         self.depth_history = []
         self.bed_history = []
         self.temperature_history = []
+        self.salinity_history = []
         self.xlon_history.append(self.pos[0])
         self.xlat_history.append(self.pos[1])
         self.depth_history.append(self.pos[2])
@@ -68,6 +69,8 @@ class Larva:
         
         self.temperature_history.append(
                         temperature[self.kpos,self.jpost,self.ipost])
+        self.salinity_history.append(
+                        salinity[self.kpos,self.jpost,self.ipost])
 #        print self.kpos,self.jpos,self.ipos
 #        print temperature[self.kpos,self.jpos,self.ipos]
         
@@ -137,6 +140,9 @@ class Larva:
     
     def get_temperature_history(self):
         return self.temperature_history       
+    
+    def get_salinity_history(self):
+        return self.salinity_history       
     
     def get_velocity(self):
         return self.vel
@@ -321,7 +327,8 @@ class Larva:
     def dead(self):
         return (self.isdead or (self.age > self.deadage))
                                         
-    def update(self, dt, rundays, gridu, gridt, u, v, w, temperature):
+    def update(self, dt, rundays, gridu, gridt, u, v, w, 
+               temperature, salinity):
         
         self.rundays = rundays
         self.age = self.age + dt / self.seconds_in_day
@@ -366,6 +373,7 @@ class Larva:
             self.bed_history.append(0)
             # out of grid, just repeat final temperature
             self.temperature_history.append(self.temperature_history[-1])
+            self.salinity_history.append(self.salinity_history[-1])
             return True
             
         # test if advected on to land
@@ -420,6 +428,7 @@ class Larva:
             self.bed_history.append(0)
             # out of grid, just repeat final temperature
             self.temperature_history.append(self.temperature_history[-1])
+            self.salinity_history.append(self.salinity_history[-1])
             return True
             
         # test if diffused on to land
@@ -452,6 +461,8 @@ class Larva:
         self.update_kji(gridt,gridu)
         self.temperature_history.append(
                     temperature[self.kpos,self.jpos,self.ipos])
+        self.salinity_history.append(
+                    salinity[self.kpos,self.jpos,self.ipos])
         
         return False
         

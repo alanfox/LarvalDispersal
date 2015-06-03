@@ -16,7 +16,7 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from mpa_class import Mpa
 
-MPA_SOURCE = 'Scanner Pockmark'
+MPA_SOURCE = 'East Mingulay'
 
 year = 1990
 

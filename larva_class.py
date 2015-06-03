@@ -63,13 +63,6 @@ class Larva:
         self.fv2 = []
         self.fw2 = []
         
-        # find initial position in grid - updates ipos and ipost etc
-        self.update_kji(gridt,gridu)
-        
-        self.temperature_history.append(
-                        temperature[self.kpos,self.jpost,self.ipost])
-#        print self.kpos,self.jpos,self.ipos
-#        print temperature[self.kpos,self.jpos,self.ipos]
         
         #extract run constants
         
@@ -78,8 +71,6 @@ class Larva:
         self.dt = RUN_CONST[2]
         self.km = RUN_CONST[3]
         self.vertical_interp = RUN_CONST[4]
-        
-        
         
         #larval behaviour constants - vary slightly for each larva
         self.swimslow = SWIM_CONST[0]
@@ -96,6 +87,14 @@ class Larva:
         # monitor health
         self.isdead = False
         
+        # find initial position in grid - updates ipos and ipost etc
+        self.update_kji(gridt,gridu)
+        
+        self.temperature_history.append(
+                        temperature[self.kpos,self.jpost,self.ipost])
+#        print self.kpos,self.jpos,self.ipos
+#        print temperature[self.kpos,self.jpos,self.ipos]
+
 # uncomment to activate settling and dying
 #        self.minsettleage = MINSETTLEAGE
 #        self.deadage = DEADAGE
@@ -182,7 +181,7 @@ class Larva:
 # two options for get_kindex. _1 version is needed for vertical
 # interpolation but is slower than standard version if no vertical
 # interpolation
-        if self.vertical_interpolation:
+        if self.vertical_interp:
             self.kpos, self.kpos_real = gridt.get_kindex_1(
                                 self.pos[0], self.pos[1], self.pos[2])
         else:
@@ -233,6 +232,10 @@ class Larva:
             # k box with larva in
             
             k = self.kpos
+            
+#            self.logfile.write('u[k,j,i]   ' + str(u[k,j,i])+ '\n')
+#            self.logfile.write('v[k,j,i]   ' + str(v[k,j,i])+ '\n')
+#            self.logfile.write('w[k,j,i]   ' + str(w[k,j,i])+ '\n')
             
             self.vel[0] = u[k,j,i]
             self.vel[1] = v[k,j,i]

@@ -74,12 +74,21 @@ class Mpa:
         lat = larva.get_lat()
         bed = larva.get_bed()
         life = len(lon)
+        # first test that larva remains in viable temperature range
+        # until settleage
+        temp = larva.get_temp()
+        t_lower, t_upper = larva.get_temp_range()
+        for i in range(settleage):
+            if ((temp[i] < t_lower) or (temp[i] > t_upper)):
+                return False
+        # then check for settling       
         for i in range(settleage,life):
-            if bed[i] == 1:
-                if self.bbox_path.contains_point((lon[i],lat[i])):
-                    if self.shape_path.contains_point((lon[i],lat[i])):
-                        self.nsettled = self.nsettled + 1
-                        return True
+            if ((temp[i] >= t_lower) and (temp[i] <= t_upper)):
+                if bed[i] == 1:
+                    if self.bbox_path.contains_point((lon[i],lat[i])):
+                        if self.shape_path.contains_point((lon[i],lat[i])):
+                            self.nsettled = self.nsettled + 1
+                            return True
         return False
         
     def bng2lonlat(self,bng):

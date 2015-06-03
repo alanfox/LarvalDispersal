@@ -36,8 +36,8 @@ from larva_class import Larva
 
 # read in run data file
 
-run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-            + 'polcoms1991/Run_target_depth_test/')
+run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+            + 'polcoms1992/Run_1000_baseline/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -229,6 +229,7 @@ def save_tracks_to_file(nc_outfile):
     dep = nc_ofid.createVariable('depth','f8',('nlarvae','time',))
     bed = nc_ofid.createVariable('at bed','i',('nlarvae','time',))
     temp = nc_ofid.createVariable('temperature','f8',('nlarvae','time',))
+    sal = nc_ofid.createVariable('salinity','f8',('nlarvae','time',))
     rt = nc_ofid.createVariable('release day','i',('nlarvae',))
     fate = nc_ofid.createVariable('fate','S1',('nlarvae',))    
     
@@ -238,6 +239,7 @@ def save_tracks_to_file(nc_outfile):
         x, y = larva.get_track()
         z, b = larva.get_depth_history()
         t = larva.get_temperature_history()
+        s = larva.get_salinity_history()
         release_time = larva.get_release_day()
         state = 'D'
            
@@ -246,6 +248,7 @@ def save_tracks_to_file(nc_outfile):
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
         temp[i,0:len(t)] = t[0:len(t)]
+        sal[i,0:len(t)] = s[0:len(t)]
         
         rt[i] = release_time
         fate[i] = state
@@ -264,6 +267,7 @@ def save_tracks_to_file(nc_outfile):
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
         temp[i,0:len(t)] = t[0:len(t)]
+        sal[i,0:len(t)] = s[0:len(t)]
         rt[i] = release_time
         fate[i] = state
         
@@ -281,6 +285,7 @@ def save_tracks_to_file(nc_outfile):
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
         temp[i,0:len(t)] = t[0:len(t)]
+        sal[i,0:len(t)] = s[0:len(t)]
         rt[i] = release_time
         fate[i] = state
         

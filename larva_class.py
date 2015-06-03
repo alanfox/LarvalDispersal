@@ -477,8 +477,9 @@ class Larva:
         
 class Larval_tracks:
     
-    def __init__(self, lon, lat, dep,bed,rt,fate, MPA_SOURCE,
-                 RUN_CONST, SWIM_CONST):
+    def __init__(self, lon, lat, dep, bed, rt, fate, temp, sal,
+                 MPA_SOURCE, RUN_CONST, SWIM_CONST, 
+                 T_LOWER, T_UPPER):
                      
         self.lon = lon
         self.lat = lat
@@ -486,27 +487,34 @@ class Larval_tracks:
         self.bed = bed
         self.rt = rt
         self.fate = fate
+        self.temp = temp
+        self.sal = sal
         self.source = MPA_SOURCE
         
-        #extract run constants 
+        #extract run constants
+        
         self.seconds_in_day = RUN_CONST[0]
         self.m_to_degree = RUN_CONST[1]
         self.dt = RUN_CONST[2]
         self.km = RUN_CONST[3]
         self.vertical_interp = RUN_CONST[4]
         
+        
+        
         #larval behaviour constants - vary slightly for each larva
         self.swimslow = SWIM_CONST[0]
         self.swimfast = SWIM_CONST[1] 
         self.swimstart = SWIM_CONST[2]
+        # random element means larvae reach milestones at different times
         self.swimmax = SWIM_CONST[3] + np.random.normal(0.0,1.0)
         self.descendagerange = SWIM_CONST[5]
         self.descendage = SWIM_CONST[4] + np.random.normal(0.0,
                                                 self.descendagerange)
         self.minsettleage = SWIM_CONST[6]
-        self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
-           
+        self.targetdepth = SWIM_CONST[8]
+        self.t_lower = T_LOWER
+        self.t_upper = T_UPPER
 
     def get_lon(self):
         return self.lon
@@ -517,5 +525,14 @@ class Larval_tracks:
     def get_bed(self):
         return self.bed
         
+    def get_temp(self):
+        return self.temp
+        
+    def get_sal(self):
+        return self.sal
+        
+    def get_temp_range(self):
+        return self.t_lower, self.t_upper
+             
     def get_settleage(self):
         return int(self.minsettleage * self.seconds_in_day / self.dt)

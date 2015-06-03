@@ -18,9 +18,13 @@ import shapefile
 import networkx as NX
 from mpa_class import Mpa
 from larva_class import Larval_tracks
+import platform
 
-run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+if platform.system() == 'Windows':
+    run_dir = ('C:/Users/af26/LarvalDispersalResults/'
             + 'polcoms1990/Run_1000_baseline/')
+elif platform.system() == 'Linux':
+    run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
 graph_output_dir = run_dir + 'Networkdata/'
 track_input_dir = run_dir + 'Trackdata/'
@@ -130,8 +134,13 @@ G = NX.DiGraph()
 # loop over larval track files
    
 for line in mpa_name_file:
-    MPA_SOURCE = line[0:-1]
-        
+    if platform.system() == 'Windows':    
+        MPA_SOURCE = line[0:-1]
+        shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+    elif platform.system() == 'Linux':
+        MPA_SOURCE = line[0:-2]
+        shapefile_root =   '/home/af26/Shapefiles/' #linux
+    
     print MPA_SOURCE
     
     # set up group of mpas to test for settling

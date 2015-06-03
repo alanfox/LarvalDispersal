@@ -23,6 +23,7 @@ POLCOMS netcdf arrays are indexed [k,j,i] ie [depth, lat, lon]
 
 
 """
+import platform
 from netCDF4 import Dataset
 import numpy as np
 import matplotlib.path as mplPath
@@ -39,10 +40,12 @@ from larva_class import Larva
 
 # different paths for windows and linux machines
 
-run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1992/Run_1000_baseline/')
 
-#run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
+if platform.system() == 'Windows':
+    run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+            + 'polcoms1992/Run_1000_baseline/')
+elif platform.system() == 'Linux':
+    run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -311,13 +314,6 @@ nc_fiddzu.close()
         
 for line in mpa_name_file:
 
-# for some unknown reason linux needs to lose the last two characters here
-    
-    MPA_SOURCE = line[0:-1]
-#    MPA_SOURCE = line[0:-2]
-    
-    print MPA_SOURCE
-    
     np.random.seed(1)
     
     # set up group of mpas
@@ -327,9 +323,14 @@ for line in mpa_name_file:
     # offshore SAC
     # different file paths on linux machine
 
-    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
-#    shapefile_root =   '/home/af26/Shapefiles/' #linux
+    if platform.system() == 'Windows':    
+        MPA_SOURCE = line[0:-1]
+        shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+    elif platform.system() == 'Linux':
+        MPA_SOURCE = line[0:-2]
+        shapefile_root =   '/home/af26/Shapefiles/' #linux
     
+    print MPA_SOURCE
     
     shapes, records = read_shapefile(shapefile_root + 
                     'UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/' + 

@@ -24,7 +24,7 @@ class Larva:
     # each larva will be an instance of this class
 
     def __init__(self, pos, vel, source, release_day, gridt, gridu,
-                 RUN_CONST, SWIM_CONST, temperature, T_LOWER, T_UPPER):
+                 RUN_CONST, SWIM_CONST, temperature, salinity, T_LOWER, T_UPPER):
 
         self.age = 0.0
         self.release_day = release_day
@@ -42,6 +42,7 @@ class Larva:
         self.depth_history = []
         self.bed_history = []
         self.temperature_history = []
+        self.salinity_history = []
         self.xlon_history.append(self.pos[0])
         self.xlat_history.append(self.pos[1])
         self.depth_history.append(self.pos[2])
@@ -63,6 +64,17 @@ class Larva:
         self.fv2 = []
         self.fw2 = []
         
+
+        # find initial position in grid - updates ipos and ipost etc
+        self.update_kji(gridt,gridu)
+        
+        self.temperature_history.append(
+                        temperature[self.kpos,self.jpost,self.ipost])
+        self.salinity_history.append(
+                        salinity[self.kpos,self.jpost,self.ipost])
+#        print self.kpos,self.jpos,self.ipos
+#        print temperature[self.kpos,self.jpos,self.ipos]
+
         
         #extract run constants
         
@@ -76,11 +88,14 @@ class Larva:
         self.swimslow = SWIM_CONST[0]
         self.swimfast = SWIM_CONST[1] 
         self.swimstart = SWIM_CONST[2]
+        # random element means larvae reach milestones at different times
         self.swimmax = SWIM_CONST[3] + np.random.normal(0.0,1.0)
-        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,1.0)
-        self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
+        self.descendagerange = SWIM_CONST[5]
+        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,
+                                                self.descendagerange)
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
+        self.targetdepth = SWIM_CONST[8]
         self.t_lower = T_LOWER
         self.t_upper = T_UPPER
                 
@@ -134,6 +149,9 @@ class Larva:
     
     def get_temperature_history(self):
         return self.temperature_history       
+    
+    def get_salinity_history(self):
+        return self.salinity_history       
     
     def get_velocity(self):
         return self.vel
@@ -260,23 +278,15 @@ class Larva:
         
         # set percentage chance of heading upwards. If it doesn't go up it goes down.
         
-        # set random swimming if in surface layer
+        # set random swimming if at target depth
         swim = np.zeros((3),dtype = float)                          
-        if (self.pos[2] < 10.0):
-            percent_up = 0.5
+        percent_up = 0.5
+        factor = self.at_target()
+        if (self.age > self.swimstart and self.age < self.descendage):
+            percent_up = percent_up + factor * 0.5
         else:
-            if (self.age < self.swimstart):
-                percent_up = 0.5
-            elif (self.age < self.descendage):
-                percent_up = 0.75
-            elif (self.age > self.fulldescendage):
-                percent_up = 0.25
-            else:
-                percent_up = 0.75 - 0.5 * ((self.age - self.descendage) 
-                                      / (self.fulldescendage - self.descendage))
-                                      
-               
-                
+            percent_up = 0.0
+                                               
         if (self.age < self.swimstart):
             swimspeed = self.swimslow
         elif (self.age > self.swimmax):
@@ -296,7 +306,7 @@ class Larva:
 #                     + np.random.normal(0.0,0.2)))
         swimspeed = (swimspeed * 
                     ((percent_up - (1.0 - percent_up))
-                     + np.random.normal(0.0,0.25)))
+                     + np.random.normal(0.0,0.5)))
         swim[2] = swimspeed                                
                                         
         return swim              
@@ -331,8 +341,20 @@ class Larva:
         
     def dead(self):
         return (self.isdead or (self.age > self.deadage))
+        
+    def at_target(self):
+        # tests depth against target. Returns 1 if below target depth, 
+        # -1 if above and 0 if at (within 10 m) of target.
+    
+        if self.pos[2] > self.targetdepth + 10.0:
+            return 1.0
+        elif self.pos[2] < self.targetdepth - 10.0:
+            return -1.0
+        else:
+            return 0.0
                                         
-    def update(self, dt, rundays, gridu, gridt, u, v, w, temperature):
+    def update(self, dt, rundays, gridu, gridt, u, v, w, 
+               temperature, salinity):
         
         self.rundays = rundays
         self.age = self.age + dt / self.seconds_in_day
@@ -377,6 +399,7 @@ class Larva:
             self.bed_history.append(0)
             # out of grid, just repeat final temperature
             self.temperature_history.append(self.temperature_history[-1])
+            self.salinity_history.append(self.salinity_history[-1])
             return True
             
         # test if advected on to land
@@ -431,6 +454,7 @@ class Larva:
             self.bed_history.append(0)
             # out of grid, just repeat final temperature
             self.temperature_history.append(self.temperature_history[-1])
+            self.salinity_history.append(self.salinity_history[-1])
             return True
             
         # test if diffused on to land
@@ -463,13 +487,16 @@ class Larva:
         self.update_kji(gridt,gridu)
         self.temperature_history.append(
                     temperature[self.kpos,self.jpos,self.ipos])
+        self.salinity_history.append(
+                    salinity[self.kpos,self.jpos,self.ipos])
         
         return False
         
 class Larval_tracks:
     
-    def __init__(self, lon, lat, dep,bed,rt,fate, MPA_SOURCE,
-                 RUN_CONST, SWIM_CONST):
+    def __init__(self, lon, lat, dep, bed, rt, fate, temp, sal,
+                 MPA_SOURCE, RUN_CONST, SWIM_CONST, 
+                 T_LOWER, T_UPPER):
                      
         self.lon = lon
         self.lat = lat
@@ -477,25 +504,34 @@ class Larval_tracks:
         self.bed = bed
         self.rt = rt
         self.fate = fate
+        self.temp = temp
+        self.sal = sal
         self.source = MPA_SOURCE
         
-        #extract run constants 
+        #extract run constants
+        
         self.seconds_in_day = RUN_CONST[0]
         self.m_to_degree = RUN_CONST[1]
         self.dt = RUN_CONST[2]
         self.km = RUN_CONST[3]
         self.vertical_interp = RUN_CONST[4]
         
+        
+        
         #larval behaviour constants - vary slightly for each larva
         self.swimslow = SWIM_CONST[0]
         self.swimfast = SWIM_CONST[1] 
         self.swimstart = SWIM_CONST[2]
+        # random element means larvae reach milestones at different times
         self.swimmax = SWIM_CONST[3] + np.random.normal(0.0,1.0)
-        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,1.0)
-        self.fulldescendage = SWIM_CONST[5] + 2 * np.random.normal(0.0,1.0)
+        self.descendagerange = SWIM_CONST[5]
+        self.descendage = SWIM_CONST[4] + np.random.normal(0.0,
+                                                self.descendagerange)
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
-           
+        self.targetdepth = SWIM_CONST[8]
+        self.t_lower = T_LOWER
+        self.t_upper = T_UPPER
 
     def get_lon(self):
         return self.lon
@@ -506,5 +542,14 @@ class Larval_tracks:
     def get_bed(self):
         return self.bed
         
+    def get_temp(self):
+        return self.temp
+        
+    def get_sal(self):
+        return self.sal
+        
+    def get_temp_range(self):
+        return self.t_lower, self.t_upper
+             
     def get_settleage(self):
         return int(self.minsettleage * self.seconds_in_day / self.dt)

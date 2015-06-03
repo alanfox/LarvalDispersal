@@ -36,9 +36,11 @@ from larva_class import Larva
 
 # read in run data file
 
+
 # different paths for windows and linux machines
 
-#run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
+#run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+#            + 'polcoms1992/Run_1000_baseline/')
 #            + 'polcoms1993/Run_BF300larvae_advect_nointerp/')
 run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -53,6 +55,7 @@ for line in input_data_file:
     input_dict[wordlist[0]] = wordlist[-1]
     
 log_file.write(str(input_dict))
+#log_file.close()
     
 track_output_dir = run_dir + 'Trackdata/'
 
@@ -62,6 +65,10 @@ nc_fileu = input_dict['nc_fileu']
 nc_filet = input_dict['nc_filet']
 nc_fidu = Dataset(nc_fileu, 'r')
 nc_fidt = Dataset(nc_filet, 'r')
+nc_filedzu = input_dict['nc_filedzu']
+nc_filedzt = input_dict['nc_filedzt']
+nc_fiddzu = Dataset(nc_filedzu, 'r')
+nc_fiddzt = Dataset(nc_filedzt, 'r')
 
 # larvae are released from MPA_SOURCE
 
@@ -95,13 +102,14 @@ DEATH = bool(int(input_dict['DEATH']))
 # average age SWIMMAX. Then swimming gradually directed more downwards from 
 # age DESCENDAGE up to DEADAGE.
 
+TARGETDEPTH = float(input_dict['TARGETDEPTH'])    # target depth
 SWIMSLOW = float(input_dict['SWIMSLOW'])          #initial swimming speed
 SWIMFAST = float(input_dict['SWIMFAST'])      # max swimming speed
 SWIMSTART = float(input_dict['SWIMSTART'])         #age in days at which start swimming
 SWIMMAX = float(input_dict['SWIMMAX'])          #average age in days at which max swimming speed is reached
 DESCENDAGE = float(input_dict['DESCENDAGE'])       # average age at which probability of heading down starts
                         # to increase
-FULLDESCENDAGE = float(input_dict['FULLDESCENDAGE'])    # now fully heading down
+DESCENDAGERANGE = float(input_dict['DESCENDAGERANGE'])    # now fully heading down
 MINSETTLEAGE = float(input_dict['MINSETTLEAGE'])     # minimum age at which can settle given suitable 
                         # habitat
 DEADAGE = float(input_dict['DEADAGE'])          # Average age at which dead
@@ -128,8 +136,9 @@ T_UPPER = 100.0
 # bring constants together for passing to larva class
 
 RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
-SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,DESCENDAGE,FULLDESCENDAGE,
-              MINSETTLEAGE,DEADAGE]
+SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,
+              DESCENDAGE,DESCENDAGERANGE,
+              MINSETTLEAGE,DEADAGE,TARGETDEPTH]
               
 
 def readVelocityData(nc_fid, n):
@@ -152,7 +161,7 @@ def readVelocityData(nc_fid, n):
     
     return u, v, w
     
-def readTemperatureData(nc_fid, n):
+def readTSData(nc_fid, n):
     '''
     netcdf Dataset -> 3 * masked array[k,j,i]
     Returns the 3-d  temperature fields read from netcdf dataset 'nc_fid'.
@@ -161,8 +170,9 @@ def readTemperatureData(nc_fid, n):
     '''
 
     temperature = nc_fid.variables['temperature'][n-1,:,:,:]
+    salinity = nc_fid.variables['salinity'][n-1,:,:,:]
     
-    return temperature
+    return temperature, salinity
     
 def read_shapefile(filename):
     sf = shapefile.Reader(filename)
@@ -201,7 +211,8 @@ def release_larvae(source, num, release_day):
                     larvae_group.add(Larva([x, y, z], [0.0,0.0,0.0],
                                            source, release_day, gridt, gridu,
                                            RUN_CONST, SWIM_CONST,
-                                           temperature,T_LOWER,T_UPPER
+                                           temperature,salinity,
+                                           T_LOWER,T_UPPER
                                            ))
                     nlarvae = nlarvae + 1    
 
@@ -223,6 +234,7 @@ def save_tracks_to_file(nc_outfile):
     dep = nc_ofid.createVariable('depth','f8',('nlarvae','time',))
     bed = nc_ofid.createVariable('at bed','i',('nlarvae','time',))
     temp = nc_ofid.createVariable('temperature','f8',('nlarvae','time',))
+    sal = nc_ofid.createVariable('salinity','f8',('nlarvae','time',))
     rt = nc_ofid.createVariable('release day','i',('nlarvae',))
     fate = nc_ofid.createVariable('fate','S1',('nlarvae',))    
     
@@ -232,6 +244,7 @@ def save_tracks_to_file(nc_outfile):
         x, y = larva.get_track()
         z, b = larva.get_depth_history()
         t = larva.get_temperature_history()
+        s = larva.get_salinity_history()
         release_time = larva.get_release_day()
         state = 'D'
            
@@ -240,6 +253,7 @@ def save_tracks_to_file(nc_outfile):
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
         temp[i,0:len(t)] = t[0:len(t)]
+        sal[i,0:len(t)] = s[0:len(t)]
         
         rt[i] = release_time
         fate[i] = state
@@ -258,6 +272,7 @@ def save_tracks_to_file(nc_outfile):
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
         temp[i,0:len(t)] = t[0:len(t)]
+        sal[i,0:len(t)] = s[0:len(t)]
         rt[i] = release_time
         fate[i] = state
         
@@ -275,6 +290,7 @@ def save_tracks_to_file(nc_outfile):
         dep[i,0:len(z)] = z[0:len(z)]
         bed[i,0:len(z)] = b[0:len(z)]
         temp[i,0:len(t)] = t[0:len(t)]
+        sal[i,0:len(t)] = s[0:len(t)]
         rt[i] = release_time
         fate[i] = state
         
@@ -285,8 +301,11 @@ def save_tracks_to_file(nc_outfile):
     
     # read in and calculate the model grid variables
     
-gridt = Grid(nc_fidt)
-gridu = Grid(nc_fidu)
+gridt = Grid(nc_fiddzt)
+gridu = Grid(nc_fiddzu)
+
+nc_fiddzt.close()
+nc_fiddzu.close()
     
 # loop over protected areas, releasing larvae from each
         
@@ -347,7 +366,7 @@ for line in mpa_name_file:
     # read in the opening day's data
     
     u, v, w = readVelocityData(nc_fidu,STARTDAY)
-    temperature = readTemperatureData(nc_fidt,STARTDAY)
+    temperature, salinity = readTSData(nc_fidt,STARTDAY)
     
 #    print MPA_SOURCE + ' 2'
     # initialise larvae. 
@@ -360,6 +379,11 @@ for line in mpa_name_file:
     # seed larvae randomly in a particular mpa
     
     release_larvae(MPA_SOURCE,NUM_LARVAE, 0)
+    
+    
+    # reset random seed
+    
+#    np.random.seed(272727)
 
 #    print MPA_SOURCE + ' 3'
 
@@ -377,7 +401,7 @@ for line in mpa_name_file:
         
         for larva in set(larvae_group):
             left = larva.update(DT, rundays, gridu, gridt, 
-                                u, v, w, temperature)
+                                u, v, w, temperature, salinity)
             if left:
                 larvae_outofarea.add(larva)
                 larvae_group.remove(larva)
@@ -392,7 +416,7 @@ for line in mpa_name_file:
             day = day + 1
 #            print day
             u, v, w = readVelocityData(nc_fidu,day)
-            temperature = readTemperatureData(nc_fidt,day)
+            temperature, salinity = readTSData(nc_fidt,day)
             
         # release a new batch of larvae if still in RELEASE_WINDOW
             if int(round(rundays)) < RELEASE_WINDOW:

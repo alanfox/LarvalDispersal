@@ -25,25 +25,13 @@ class Grid:
         self.latitude = self.nc_fid.variables['latitude'][:]
         self.longitude = self.nc_fid.variables['longitude'][:]
         self.depth = self.nc_fid.variables['depth'][:]
+        self.dz = self.nc_fid.variables['dz'][:]
         
 # convert depths to more useful format of depth to layer boundary, rather than
-# depth of mid-layer point. Horrible and slow, there must be a better way 
-# making use of numpy array processing. Never mind, it only happens once.
-
-        new_depth = self.depth.copy()
+# depth of mid-layer point.
         
-        ilen = self.depth.shape[2]
-        jlen = self.depth.shape[1]
-        klen = self.depth.shape[0]
+        self.depth = self.depth + self.dz / 2.0        
         
-        for i in range(ilen):
-            for j in range(jlen):
-                n = klen
-                new_depth[-1,j,i] = self.depth[-1,j,i] * 2.0
-                for k in range(n-2, -1, -1):
-                    new_depth[k,j,i] = (2.0 * self.depth[k,j,i] 
-                                        - new_depth[k+1,j,i])
-        self.depth = new_depth.copy()
         
     def get_latitude(self):
         return self.latitude

@@ -1,25 +1,14 @@
 
 """
 
-@author: af26
+Takes netcdf files output by larval_dispersal_polcoms.py and builds 
+a network of connections between MPAs.
 
-24 February 2015 --- Grid, Mpa and Larva classes separated out into 
-separate files.
+Mostly testing whether larvae have entered another MPA while at the 
+bed and in a 'settling' phase.
 
-Uses velocity fields from the POLCOMS 1/6 x 1/9 degree model
-to advect and diffuse larvae.
-
-Written in Python 2.7 (though I don't think there is anything here which isn't
-Python 3) because I couldn't find the basemap package for Python 3 on Windows.
-
-Only tested on Windows using Anaconda python installation.
-
-The data file path will need to be modified. Data file netcdf4.
-
-Includes larval behaviour. Starting at bed, rising through water 
-column, then sinking. 
-
-POLCOMS netcdf arrays are indexed [k,j,i] ie [depth, lat, lon]
+Also checks that larvae remain within the temperature range in which
+they are viable.
 
 
 """
@@ -30,49 +19,66 @@ import networkx as NX
 from mpa_class import Mpa
 from larva_class import Larval_tracks
 
-run_dir = 'polcoms1993/Run_20150422/'
+run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+            + 'polcoms1990/Run_1000_baseline/')
 
 graph_output_dir = run_dir + 'Networkdata/'
 track_input_dir = run_dir + 'Trackdata/'
 mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
 
+input_data_file = open(run_dir + 'input.dat', 'r')
+
+input_dict = {}
+
+for line in input_data_file:
+    wordlist = line.split()
+    input_dict[wordlist[0]] = wordlist[-1]
+        
+mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
+
+# larvae are released from MPA_SOURCE
+
 # NUM_LARVAE are released at the start of each day for RELEASE_WINDOW days
 # for a single release at time zero set RELEASE_WINDOW negative
 
-NUM_LARVAE = 30
-RELEASE_WINDOW = 30
+NUM_LARVAE = int(input_dict['NUM_LARVAE'])
+RELEASE_WINDOW = int(input_dict['RELEASE_WINDOW'])
 
-STARTDAY = 32
+STARTDAY = int(input_dict['STARTDAY'])
 
 SECONDS_IN_DAY = 60.0 * 60.0 * 24.0
 RADIUS_OF_EARTH = 6378160.0
 M_TO_DEGREE = 360.0 / (2.0 * np.pi * RADIUS_OF_EARTH)
 
-DT = 3600.0
+DT = float(input_dict['DT'])
 DTDAYS = DT / SECONDS_IN_DAY
 
-KM = np.array([1.0, 1.0, 0.0002]) #constant diffusion coefficient m2/s
+KMX = float(input_dict['KMX'])
+KMY = float(input_dict['KMY'])
+KMZ = float(input_dict['KMZ'])
 
-VERTICAL_INTERP = False
-ANIMATE = False
-SETTLING = True
-DEATH = True
+KM = np.array([KMX, KMY, KMZ]) #constant diffusion coefficient m2/s
+
+VERTICAL_INTERP = bool(int(input_dict['VERTICAL_INTERP']))
+ANIMATE = bool(int(input_dict['ANIMATE']))
+DEATH = bool(int(input_dict['DEATH']))
 
 # constants for larval behaviour
 # larvae released at bed, head upwards with increasing swim speeds up to 
 # average age SWIMMAX. Then swimming gradually directed more downwards from 
 # age DESCENDAGE up to DEADAGE.
 
-SWIMSLOW = 0.0          #initial swimming speed
-SWIMFAST = 0.003      # max swimming speed
-SWIMSTART = 0.0         #age in days at which start swimming
-SWIMMAX = 14.0          #average age in days at which max swimming speed is reached
-DESCENDAGE = 21.0       # average age at which probability of heading down starts
+TARGETDEPTH = float(input_dict['TARGETDEPTH'])    # target depth
+SWIMSLOW = float(input_dict['SWIMSLOW'])          #initial swimming speed
+SWIMFAST = float(input_dict['SWIMFAST'])      # max swimming speed
+SWIMSTART = float(input_dict['SWIMSTART'])         #age in days at which start swimming
+SWIMMAX = float(input_dict['SWIMMAX'])          #average age in days at which max swimming speed is reached
+DESCENDAGE = float(input_dict['DESCENDAGE'])       # average age at which probability of heading down starts
                         # to increase
-FULLDESCENDAGE = 42.0    # now fully heading down
-MINSETTLEAGE = 30.0     # minimum age at which can settle given suitable 
+DESCENDAGERANGE = float(input_dict['DESCENDAGERANGE'])    # now fully heading down
+MINSETTLEAGE = float(input_dict['MINSETTLEAGE'])     # minimum age at which can settle given suitable 
                         # habitat
-DEADAGE = 63.0          # Average age at which dead
+DEADAGE = float(input_dict['DEADAGE'])          # Average age at which dead
 # just set DEADAGE to a large value if larvae are not dying
 if not DEATH:
     DEADAGE = 1000.0
@@ -83,13 +89,22 @@ if DEATH:
     else:
         NRUNDAYS = DEADAGE + 1
 else:
-    NRUNDAYS = 65
+    NRUNDAYS = float(input_dict['NRUNDAYS'])
+    
+# set temperature bounds for life
+# just set wide here, all larvae survive but temperature
+# along track is recorded for possible use later
+
+T_LOWER = -10.0
+T_UPPER = 100.0     
+    
     
 # bring constants together for passing to larva class
 
 RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
-SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,DESCENDAGE,FULLDESCENDAGE,
-              MINSETTLEAGE,DEADAGE]
+SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,
+              DESCENDAGE,DESCENDAGERANGE,
+              MINSETTLEAGE,DEADAGE,TARGETDEPTH]
     
 def read_shapefile(filename):
     sf = shapefile.Reader(filename)
@@ -142,6 +157,11 @@ for line in mpa_name_file:
     shapes, records = read_shapefile('C:/Users/af26/Shapefiles/SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
     for i in range(len(shapes)):
         mpa_group.add(Mpa(shapes[i], records[i],'IRISH'))
+
+    # Mikael Dahl's lophelia sites
+    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/MikaelDahl_1')
+    for i in range(len(shapes)):
+        mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
         
     # initialise larvae. 
     nc_file = (track_input_dir + MPA_SOURCE + '.nc')
@@ -164,10 +184,16 @@ for line in mpa_name_file:
         dep = nc_fid.variables['depth'][i,:]
         bed = nc_fid.variables['at bed'][i,:]
         rt = nc_fid.variables['release day'][i]
-        fate = nc_fid.variables['fate'][i]    
+        fate = nc_fid.variables['fate'][i]
+        temp = nc_fid.variables['temperature'][i,:]
+# trick to cope with files with no salinity data (salinity not used)
+        sal = nc_fid.variables['temperature'][i,:]
+#        sal = nc_fid.variables['salinity'][i,:]
 
-        larvae_group.add(Larval_tracks(lon,lat,dep,bed,rt,fate, MPA_SOURCE,
-                                           RUN_CONST, SWIM_CONST))  
+        larvae_group.add(Larval_tracks(lon, lat, dep, bed, rt, fate, 
+                                       temp, sal, MPA_SOURCE,
+                                       RUN_CONST, SWIM_CONST,
+                                       T_LOWER, T_UPPER))  
                                            
     nc_fid.close()
 

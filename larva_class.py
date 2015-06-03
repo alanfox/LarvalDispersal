@@ -63,19 +63,7 @@ class Larva:
         self.fu2 = []
         self.fv2 = []
         self.fw2 = []
-        
-
-        # find initial position in grid - updates ipos and ipost etc
-        self.update_kji(gridt,gridu)
-        
-        self.temperature_history.append(
-                        temperature[self.kpos,self.jpost,self.ipost])
-        self.salinity_history.append(
-                        salinity[self.kpos,self.jpost,self.ipost])
-#        print self.kpos,self.jpos,self.ipos
-#        print temperature[self.kpos,self.jpos,self.ipos]
-
-        
+                
         #extract run constants
         
         self.seconds_in_day = RUN_CONST[0]
@@ -107,17 +95,9 @@ class Larva:
         
         self.temperature_history.append(
                         temperature[self.kpos,self.jpost,self.ipost])
-#        print self.kpos,self.jpos,self.ipos
-#        print temperature[self.kpos,self.jpos,self.ipos]
+        self.salinity_history.append(
+                        salinity[self.kpos,self.jpost,self.ipost])
 
-# uncomment to activate settling and dying
-#        self.minsettleage = MINSETTLEAGE
-#        self.deadage = DEADAGE
-        
-#        self.run_dir = ('C:/Users/af26/Documents/LarvalDispersalResults/'
-#            + 'polcoms1993/Run_BF300larvae_advect_linear/')
-#        self.logfile = open(self.run_dir + 'log' +str(int(self.pos[2]))+'.dat', 'w')
-#        self.logfile.write(str(self.pos[2]) + '\n')
         
     def bed_release(self, position, gridt):
         
@@ -172,15 +152,7 @@ class Larva:
         u2 = np.insert(np.append(u1,u1[nz-1]),0,u1[0])
         v2 = np.insert(np.append(v1,v1[nz-1]),0,v1[0])
         w2 = np.insert(np.append(w1,w1[nz-1]),0,w1[0])
-        
-#        self.logfile.write('u1 ' + str(u1)+ '\n')
-#        self.logfile.write('v1 ' + str(v1)+ '\n')
-#        self.logfile.write('w1 '+ str(w1)+ '\n')
-##        
-#        self.logfile.write('u2 ' + str(u2)+ '\n')
-#        self.logfile.write('v2 ' + str(v2)+ '\n')
-#        self.logfile.write('w2 ' + str(w2)+ '\n')
-    
+            
         # linear interpolation 
         self.fu2 = interp1d(zlevs, u2, kind = 'linear')
         self.fv2 = interp1d(zlevs, v2, kind = 'linear')
@@ -223,37 +195,16 @@ class Larva:
             self.vertical_interpolation(i,j,u,v,w)
             
             k = self.kpos
-            
-#            self.logfile.write('kpos ' + str(self.kpos) 
-#                           + ' kpos_real ' + str(self.kpos_real)+ '\n')
-#
-#            self.logfile.write('u[k,j,i]   ' + str(u[k,j,i])+ '\n')
-#            self.logfile.write('v[k,j,i]   ' + str(v[k,j,i])+ '\n')
-#            self.logfile.write('w[k,j,i]   ' + str(w[k,j,i])+ '\n')
-##            
-#            self.logfile.write('u[k+1,j,i] ' + str(u[k+1,j,i])+ '\n')
-#            self.logfile.write('v[k+1,j,i] ' + str(v[k+1,j,i])+ '\n')
-#            self.logfile.write('w[k+1,j,i] ' + str(w[k+1,j,i])+ '\n')
-##            
-            
-                  
+                                          
             self.vel[0] = self.fu2(self.kpos_real)
             self.vel[1] = self.fv2(self.kpos_real)
             self.vel[2] = self.fw2(self.kpos_real)
             
-#            self.logfile.write('self.vel[0] ' + str(self.vel[0])+ '\n')
-#            self.logfile.write('self.vel[1] ' + str(self.vel[1])+ '\n')
-#            self.logfile.write('self.vel[2] ' + str(self.vel[2])+ '\n')
-#            
         else:    
             # or just go with box larva is in
             # k box with larva in
             
             k = self.kpos
-            
-#            self.logfile.write('u[k,j,i]   ' + str(u[k,j,i])+ '\n')
-#            self.logfile.write('v[k,j,i]   ' + str(v[k,j,i])+ '\n')
-#            self.logfile.write('w[k,j,i]   ' + str(w[k,j,i])+ '\n')
             
             self.vel[0] = u[k,j,i]
             self.vel[1] = v[k,j,i]

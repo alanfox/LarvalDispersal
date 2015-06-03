@@ -39,10 +39,10 @@ from larva_class import Larva
 
 # different paths for windows and linux machines
 
-#run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-#            + 'polcoms1992/Run_1000_baseline/')
-#            + 'polcoms1993/Run_BF300larvae_advect_nointerp/')
-run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
+run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+            + 'polcoms1992/Run_1000_baseline/')
+
+#run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
 log_file = open(run_dir + 'log.dat', 'w')
 
@@ -313,8 +313,8 @@ for line in mpa_name_file:
 
 # for some unknown reason linux needs to lose the last two characters here
     
-#    MPA_SOURCE = line[0:-1]
-    MPA_SOURCE = line[0:-2]
+    MPA_SOURCE = line[0:-1]
+#    MPA_SOURCE = line[0:-2]
     
     print MPA_SOURCE
     
@@ -327,8 +327,8 @@ for line in mpa_name_file:
     # offshore SAC
     # different file paths on linux machine
 
-#    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
-    shapefile_root =   '/home/af26/Shapefiles/' #linux
+    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+#    shapefile_root =   '/home/af26/Shapefiles/' #linux
     
     
     shapes, records = read_shapefile(shapefile_root + 

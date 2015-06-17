@@ -22,7 +22,7 @@ import platform
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1990/Run_1000_baseline/')
+            + 'polcoms1998/Run_1000_baseline/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -135,12 +135,11 @@ G = NX.DiGraph()
    
 for line in mpa_name_file:
     if platform.system() == 'Windows':    
-        MPA_SOURCE = line[0:-1]
         shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
     elif platform.system() == 'Linux':
-        MPA_SOURCE = line[0:-2]
         shapefile_root =   '/home/af26/Shapefiles/' #linux
     
+    MPA_SOURCE = line.rstrip()
     print MPA_SOURCE
     
     # set up group of mpas to test for settling
@@ -196,8 +195,8 @@ for line in mpa_name_file:
         fate = nc_fid.variables['fate'][i]
         temp = nc_fid.variables['temperature'][i,:]
 # trick to cope with files with no salinity data (salinity not used)
-        sal = nc_fid.variables['temperature'][i,:]
-#        sal = nc_fid.variables['salinity'][i,:]
+#        sal = nc_fid.variables['temperature'][i,:]
+        sal = nc_fid.variables['salinity'][i,:]
 
         larvae_group.add(Larval_tracks(lon, lat, dep, bed, rt, fate, 
                                        temp, sal, MPA_SOURCE,

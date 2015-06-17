@@ -15,21 +15,22 @@ import shapefile
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from mpa_class import Mpa
+import platform
 
 
 MPA_SOURCE = 'East Mingulay'
 
-year = 1990
+year = 1993
 
-nc_file = ('/home/af26/LarvalModelResults/' +
-           'Polcoms1990/Run_test/Trackdata/' + MPA_SOURCE + '.nc')
+if platform.system() == 'Windows':
+    run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+            + 'polcoms1993/Run_1000_baseline/')
+elif platform.system() == 'Linux':
+    run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
-#MPA_SOURCE = 'Wyville Thomson Ridge'
-#
-#year = 1991
-#
-#nc_file = ('C:/Users/af26/Documents/LarvalDispersalResults/' +
-#           'polcoms1991/Run_target_depth_test/Trackdata/' + MPA_SOURCE + '.nc')
+nc_file = (run_dir +
+           'Trackdata/' + MPA_SOURCE + '.nc')
+
 
 nc_fid = Dataset(nc_file, 'r')
 
@@ -98,11 +99,10 @@ def clear_frame(ax=None):
 
 mpa_group = set([])
 
-    # offshore SAC
-    # different file paths on linux machine
-
-#    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
-shapefile_root =   '/home/af26/Shapefiles/' #linux
+if platform.system() == 'Windows':    
+    shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+elif platform.system() == 'Linux':
+    shapefile_root =   '/home/af26/Shapefiles/' #linux
 
 shapes, records = read_shapefile(shapefile_root + 
                 'UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/' + 
@@ -145,11 +145,16 @@ cmap = ListedColormap(['black', 'r'])
 # Create a 'norm' (normalizing function) which maps data values to the interval [0,1]:
 norm = BoundaryNorm([-1000, 0.5, 1000], cmap.N)  # cmap.N is number of items in the colormap
 
+lllat = 54.0
+lllon = -16.0
+urlat = 64.0
+urlon = 6.0
 
 plt.figure()
 
-m = Basemap(projection='lcc',llcrnrlat=40.,llcrnrlon=-18.,urcrnrlat=65.,\
-            urcrnrlon=14.,lat_1=55.,lon_0 = -4.0,resolution='c')
+m = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
+            urcrnrlat = urlat, urcrnrlon = urlon,
+            lat_1 = 55., lon_0 = -4.0, resolution='c')
                         
 fates = nc_fid.variables['fate'][:]
 
@@ -192,8 +197,8 @@ m.drawcoastlines()
 m.drawparallels(np.arange(40.,66.,1.),labels = [1,1,0,0])
 m.drawmeridians(np.arange(-24.,13.,2.),labels = [0,0,0,1])
 #m.drawmapboundary(fill_color='skyblue')
-plt.title("POLCOMS model. Larval release through Feb " 
-          + str(year) + ". Larsson et al behaviour")
+#plt.title("POLCOMS model. Larval release through Feb " 
+#          + str(year) + ". Larsson et al behaviour")
 # draw the mpas
 
 for mpa in mpa_group:
@@ -211,8 +216,9 @@ for mpa in mpa_group:
 
 plt.figure()
 
-m = Basemap(projection='lcc',llcrnrlat=40.,llcrnrlon=-18.,urcrnrlat=65.,\
-            urcrnrlon=14.,lat_1=55.,lon_0 = -4.0,resolution='c')
+m = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
+            urcrnrlat = urlat, urcrnrlon = urlon,
+            lat_1 = 55., lon_0 = -4.0, resolution='c')
                         
 fates = nc_fid.variables['fate'][:]
 
@@ -250,8 +256,8 @@ m.drawcoastlines()
 m.drawparallels(np.arange(40.,66.,1.),labels = [1,1,0,0])
 m.drawmeridians(np.arange(-24.,13.,2.),labels = [0,0,0,1])
 m.drawmapboundary(fill_color='skyblue')
-plt.title("POLCOMS model. Larval release through Feb " 
-          + str(year) + ". Larsson et al behaviour")
+#plt.title("POLCOMS model. Larval release through Feb " 
+#          + str(year) + ". Larsson et al behaviour")
 # draw the mpas
 
 for mpa in mpa_group:

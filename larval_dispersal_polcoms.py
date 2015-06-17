@@ -43,7 +43,7 @@ from larva_class import Larva
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1992/Run_1000_baseline/')
+            + 'polcoms1999/Run_1000_baseline/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -324,12 +324,11 @@ for line in mpa_name_file:
     # different file paths on linux machine
 
     if platform.system() == 'Windows':    
-        MPA_SOURCE = line[0:-1]
         shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
     elif platform.system() == 'Linux':
-        MPA_SOURCE = line[0:-2]
         shapefile_root =   '/home/af26/Shapefiles/' #linux
     
+    MPA_SOURCE = line.rstrip()
     print MPA_SOURCE
     
     shapes, records = read_shapefile(shapefile_root + 

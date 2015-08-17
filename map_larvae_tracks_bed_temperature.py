@@ -18,13 +18,13 @@ from mpa_class import Mpa
 import platform
 
 
-MPA_SOURCE = 'East Mingulay'
+MPA_SOURCE = 'The Barra Fan and Hebrides Terrace Seamount'
 
 year = 1993
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1993/Run_1000_baseline/')
+            + 'polcoms1995/Run_1000_passive/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 

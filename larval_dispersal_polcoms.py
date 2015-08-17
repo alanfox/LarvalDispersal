@@ -43,7 +43,7 @@ from larva_class import Larva
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1990/Run_1000_longlife/')
+            + 'polcoms1990to2000_climatology/Run_1000_10xdiff/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 

@@ -15,6 +15,8 @@ import shapefile
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from mpa_class import Mpa
 import platform
+import datetime as datetime
+
 
 # for reading the MPA shapefiles. For drawing the mpa outlines.    
 
@@ -75,26 +77,31 @@ def read_mpas():
 MPA_SOURCE = ('East Mingulay',
               'Scanner Pockmark',
               'East Rockall Bank',
-              'Faroe-Shetland Sponge Belt')
+              'Wyville Thomson Ridge')
+
 
 # and choose a year
 
-year = 1995
+year = 1998
 
 # timesteps per day
+
+#startday = 32.0
+
+starttime = datetime.datetime(year,2,1)
 
 daysteps = 24.0
 
 # minimum survivable temperature
 
-min_temp = 3.0
+min_temp = 4.0
 
 # plotting area constants
 
 lllat = 54.0
 lllon = -18.0
-urlat = 65.0
-urlon = 8.0
+urlat = 64.5
+urlon = 16.0
 
 
 if platform.system() == 'Windows':
@@ -158,7 +165,7 @@ min_release_day = int(min_t/daysteps)
 #print n_steps, min_release_day
 
 # for testing override nsteps
-#n_steps = 24
+n_steps = 25
 
 background = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
             urcrnrlat = urlat, urcrnrlon = urlon,
@@ -178,7 +185,12 @@ for mpa in MPA_SOURCE:
     not_dead[mpa] = np.cumprod(not_dead[mpa],axis = 1)
 
 for i in range(n_steps):
-    file_name = run_dir + 'temp_video/_temp%05d.png' % i
+    
+    diff = datetime.timedelta(hours = i)
+    
+    timenow = starttime + diff
+    
+    file_name = run_dir + 'temp_video/_test%05d.png' % i
     
     m = background
     
@@ -190,11 +202,10 @@ for i in range(n_steps):
     #m.fillcontinents(color='coral',lake_color='skyblue')
     
     # draw parallels and meridians.
-    m.drawparallels(np.arange(40.,66.,1.),labels = [1,1,0,0])
-    m.drawmeridians(np.arange(-24.,13.,2.),labels = [0,0,0,1])
+    m.drawparallels(np.arange(40.,66.,2.),labels = [1,0,0,0],fontsize = 8)
+    m.drawmeridians(np.arange(-24.,13.,4.),labels = [0,0,0,1],fontsize = 8)
     m.drawmapboundary(fill_color='skyblue')
-    #plt.title("POLCOMS model. Larval release through Feb " 
-    #          + str(year) + ". Larsson et al behaviour")
+    plt.title(timenow.strftime("%Y %b %d %H:%M"), loc = 'left')
     # draw the mpas
 
     for mpa in mpa_group:
@@ -227,6 +238,7 @@ for i in range(n_steps):
                 y.append(lat[i-int(releaseday * 24.0)])
 #                z.append(at_bed[i-int(releaseday * 24.0)])
                 z.append(depth[i-int(releaseday * 24.0)])
+#                print temperature[i-int(releaseday * 24.0)]
             elif (i > int(releaseday * 24.0) + latdatarange[1] and
                     not_dead[mpa][ii,latdatarange[1]]):
                 x.append(lon[latdatarange[1]])
@@ -237,9 +249,13 @@ for i in range(n_steps):
                 
 #    m.scatter(x,y, s = 5, marker = "o", c = z, 
 #              cmap = cmap, norm = norm, edgecolor = 'none', latlon = True)
-    m.scatter(x,y, s = 5, marker = "o", c = z, 
+    cs = m.scatter(x,y, s = 5, marker = "o", c = z, 
               cmap = cmap, vmin = vmin, vmax = vmax, edgecolor = 'none', latlon = True)
-        
+    cbar = m.colorbar(cs,location = 'bottom', pad = '7%')
+    cbar.ax.set_xlabel('depth of larva (m)',fontsize = 10) 
+    cbar.ax.tick_params(labelsize=8)
+    
+     
     plt.savefig(file_name,dpi = 160)
     plt.clf()
     

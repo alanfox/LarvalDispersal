@@ -166,8 +166,8 @@ class Larva:
         
         self.ipos, self.jpos = gridt.get_index_ne(self.pos[0], self.pos[1])
         self.ipost, self.jpost = gridu.get_index_ne(self.pos[0], self.pos[1])
-        self.ipost = self.ipost + 1
-        self.jpost = self.jpost + 1
+        self.ipost = self.ipost - 1
+        self.jpost = self.jpost - 1
 # two options for get_kindex. _1 version is needed for vertical
 # interpolation but is slower than standard version if no vertical
 # interpolation
@@ -233,6 +233,7 @@ class Larva:
         swim = np.zeros((3),dtype = float)                          
         percent_up = 0.5
         factor = self.at_target()
+        
         if (self.age > self.swimstart and self.age < self.descendage):
             percent_up = percent_up + factor * 0.5
         else:
@@ -247,6 +248,8 @@ class Larva:
                                           * (self.age - self.swimstart)
                                           / (self.swimmax - self.swimstart))
                 
+
+
 #        print self.rundays, percent_up
         
         # set swim speed based on percent_up and swimspeed with some random noise
@@ -295,8 +298,11 @@ class Larva:
         
     def at_target(self):
         # tests depth against target. Returns 1 if below target depth, 
-        # -1 if above and 0 if at (within 10 m) of target.
-    
+        # -1 if above and 0 if at target.
+        # set tolerance to 10 m for tight depth control
+        # set to 5000 m for random swimming before descent 
+        # should put this in the input file
+        
         if self.pos[2] > self.targetdepth + 10.0:
             return 1.0
         elif self.pos[2] < self.targetdepth - 10.0:

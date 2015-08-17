@@ -14,6 +14,7 @@ from mpa_class import Mpa
 
 
 """
+import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 from bngtolatlon import OSGB36toWGS84
 
@@ -115,3 +116,13 @@ class Mpa:
             y.append(point[1])
 #        pat.Polygon(zip(x,y))          
         m.plot(x,y, latlon = True, color = colour)   
+
+    def plot_shape2(self, colour):
+        x = []
+        y = []
+#        print self.shape_path.contains_point((-14.0,58.0)), self.record[1]
+        for point in self.points:
+            x.append(point[0])
+            y.append(point[1])
+#        pat.Polygon(zip(x,y))          
+        plt.plot(x,y, color = colour)   

@@ -18,13 +18,13 @@ from mpa_class import Mpa
 import platform
 
 
-MPA_SOURCE = 'The Barra Fan and Hebrides Terrace Seamount'
+MPA_SOURCE = 'Geikie Slide and Hebridean Slope'
 
-year = 1993
+year = 1995
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1995/Run_1000_passive/')
+            + 'polcoms1995/Run_1000_baseline/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -145,17 +145,23 @@ cmap = ListedColormap(['black', 'r'])
 # Create a 'norm' (normalizing function) which maps data values to the interval [0,1]:
 norm = BoundaryNorm([-1000, 0.5, 1000], cmap.N)  # cmap.N is number of items in the colormap
 
-lllat = 54.0
-lllon = -16.0
-urlat = 64.0
-urlon = 6.0
+#lllat = 54.0
+#lllon = -16.0
+#urlat = 64.0
+#urlon = 6.0
 
 plt.figure()
 
-m = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
-            urcrnrlat = urlat, urcrnrlon = urlon,
-            lat_1 = 55., lon_0 = -4.0, resolution='c')
+#m = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
+#            urcrnrlat = urlat, urcrnrlon = urlon,
+#            lat_1 = 55., lon_0 = -4.0, resolution='c')
                         
+width = 750000
+height = 900000
+
+m = Basemap(width=width,height=height,projection='lcc',
+            lat_0 = 58.0, lon_0 = -5.0, resolution='c')
+            
 fates = nc_fid.variables['fate'][:]
 
 i = 0
@@ -203,106 +209,107 @@ m.drawmeridians(np.arange(-24.,13.,2.),labels = [0,0,0,1])
 
 for mpa in mpa_group:
 #    print mpa.get_sitename()
-    if mpa.get_sitename() == MPA_SOURCE:
-        colour = 'red'
-    else:
-        colour = 'blue'
-    mpa.plot_shape(m,colour)
-    print mpa.get_sitename()
+    if mpa.get_sitename() != 'Sea of the Hebrides':
+        if mpa.get_sitename() == MPA_SOURCE:
+            colour = 'red'
+        else:
+            colour = 'blue'
+        mpa.plot_shape(m,colour)
+        print mpa.get_sitename()
 
 #-------------------------------------------------------------------
 # plot the start and end points
 #-------------------------------------------------------------------
 
-plt.figure()
-
-m = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
-            urcrnrlat = urlat, urcrnrlon = urlon,
-            lat_1 = 55., lon_0 = -4.0, resolution='c')
-                        
-fates = nc_fid.variables['fate'][:]
-
-i = 0
-for fate in fates:
-    col = '#000000'
-    x = nc_fid.variables['longitude'][i,:]
-    y = nc_fid.variables['latitude'][i,:]
-    z = nc_fid.variables['depth'][i,:]
-
-# Find the indices of the first and last unmasked values
-    xdatarange = np.ma.flatnotmasked_edges(x)
-    ydatarange = np.ma.flatnotmasked_edges(y)
-    zdatarange = np.ma.flatnotmasked_edges(z)
-
-    if z[zdatarange[0]] <= 5000.0:    
-    # starting positions
-        m.scatter(x[xdatarange[0]],y[ydatarange[0]], latlon = True, 
-                  marker = "v", color = col)
-        
-    # ending positions       
-        m.scatter(x[xdatarange[1]],y[ydatarange[1]], latlon = True, 
-                  marker = "o", color = col)
-        
-    i = i+1
- 
-# etopo is the topography/ bathymetry map background
-m.etopo()
-m.drawcoastlines()
-
-# alternative plain map background
-#m.fillcontinents(color='coral',lake_color='skyblue')
-
-# draw parallels and meridians.
-m.drawparallels(np.arange(40.,66.,1.),labels = [1,1,0,0])
-m.drawmeridians(np.arange(-24.,13.,2.),labels = [0,0,0,1])
-m.drawmapboundary(fill_color='skyblue')
+#plt.figure()
+#
+#m = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
+#            urcrnrlat = urlat, urcrnrlon = urlon,
+#            lat_1 = 55., lon_0 = -4.0, resolution='c')
+#                        
+#fates = nc_fid.variables['fate'][:]
+#
+#i = 0
+#for fate in fates:
+#    col = '#000000'
+#    x = nc_fid.variables['longitude'][i,:]
+#    y = nc_fid.variables['latitude'][i,:]
+#    z = nc_fid.variables['depth'][i,:]
+#
+## Find the indices of the first and last unmasked values
+#    xdatarange = np.ma.flatnotmasked_edges(x)
+#    ydatarange = np.ma.flatnotmasked_edges(y)
+#    zdatarange = np.ma.flatnotmasked_edges(z)
+#
+#    if z[zdatarange[0]] <= 5000.0:    
+#    # starting positions
+#        m.scatter(x[xdatarange[0]],y[ydatarange[0]], latlon = True, 
+#                  marker = "v", color = col)
+#        
+#    # ending positions       
+#        m.scatter(x[xdatarange[1]],y[ydatarange[1]], latlon = True, 
+#                  marker = "o", color = col)
+#        
+#    i = i+1
+# 
+## etopo is the topography/ bathymetry map background
+#m.etopo()
+#m.drawcoastlines()
+#
+## alternative plain map background
+##m.fillcontinents(color='coral',lake_color='skyblue')
+#
+## draw parallels and meridians.
+#m.drawparallels(np.arange(40.,66.,1.),labels = [1,1,0,0])
+#m.drawmeridians(np.arange(-24.,13.,2.),labels = [0,0,0,1])
+#m.drawmapboundary(fill_color='skyblue')
+##plt.title("POLCOMS model. Larval release through Feb " 
+##          + str(year) + ". Larsson et al behaviour")
+## draw the mpas
+#
+#for mpa in mpa_group:
+##    print mpa.get_sitename()
+#    if mpa.get_sitename() == MPA_SOURCE:
+#        colour = 'red'
+#    else:
+#        colour = 'blue'
+#    mpa.plot_shape(m,colour)
+##    print mpa.get_settled(), mpa.get_sitename()
+#
+###plt.savefig('foo.pdf')
+#
+##------------------------------------------------------------------------
+## this draws a t,z plot of the position of the larvae in the water column
+##------------------------------------------------------------------------
+#
+#plt.figure()
 #plt.title("POLCOMS model. Larval release through Feb " 
 #          + str(year) + ". Larsson et al behaviour")
-# draw the mpas
-
-for mpa in mpa_group:
-#    print mpa.get_sitename()
-    if mpa.get_sitename() == MPA_SOURCE:
-        colour = 'red'
-    else:
-        colour = 'blue'
-    mpa.plot_shape(m,colour)
-#    print mpa.get_settled(), mpa.get_sitename()
-
-##plt.savefig('foo.pdf')
-
-#------------------------------------------------------------------------
-# this draws a t,z plot of the position of the larvae in the water column
-#------------------------------------------------------------------------
-
-plt.figure()
-plt.title("POLCOMS model. Larval release through Feb " 
-          + str(year) + ". Larsson et al behaviour")
-plt.ylabel('depth m')
-plt.xlabel('time in days from release')
-i = 0
-for fate in fates:
-    z = nc_fid.variables['depth'][i,:]
-    rt = nc_fid.variables['release day'][i]
-    at_bed = nc_fid.variables['at bed'][i,:]
-    
-# for colorline need to remove masked values
-    z1 = np.ma.compressed(z)
-    at_bed = np.ma.compressed(at_bed)
-    t = np.array(range(len(z1)))
-    t = rt + t/24.0 
-
-    colorline(t,z1,at_bed,cmap,norm)
-#    plt.plot(t,z)
-    i = i+1
-       
-# set plot limits
-ax = plt.gca()
-ax.autoscale(True)
-# reverse plot vertical axis
-ymin, ymax = plt.ylim()
-plt.ylim([ymax,ymin])
-
+#plt.ylabel('depth m')
+#plt.xlabel('time in days from release')
+#i = 0
+#for fate in fates:
+#    z = nc_fid.variables['depth'][i,:]
+#    rt = nc_fid.variables['release day'][i]
+#    at_bed = nc_fid.variables['at bed'][i,:]
+#    
+## for colorline need to remove masked values
+#    z1 = np.ma.compressed(z)
+#    at_bed = np.ma.compressed(at_bed)
+#    t = np.array(range(len(z1)))
+#    t = rt + t/24.0 
+#
+#    colorline(t,z1,at_bed,cmap,norm)
+##    plt.plot(t,z)
+#    i = i+1
+#       
+## set plot limits
+#ax = plt.gca()
+#ax.autoscale(True)
+## reverse plot vertical axis
+#ymin, ymax = plt.ylim()
+#plt.ylim([ymax,ymin])
+#
 #------------------------------------------------------------------------
 # this draws a temperature v time plot of the larvae
 #------------------------------------------------------------------------
@@ -335,6 +342,6 @@ plt.ylim([ymax,ymin])
 #ymin, ymax = plt.ylim()
 #plt.ylim([ymax,ymin])
 #
-#plt.show()
+plt.show()
 #
-#nc_fid.close()
+nc_fid.close()

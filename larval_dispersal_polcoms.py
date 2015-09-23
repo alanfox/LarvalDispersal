@@ -43,7 +43,7 @@ from larva_class import Larva
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1990to2000_climatology/Run_1000_10xdiff/')
+            + 'polcoms1994/Run_1000_behaviour2/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -414,7 +414,7 @@ for line in mpa_name_file:
         
         if ((runtime % SECONDS_IN_DAY) < DT/2.0):
             day = day + 1
-#            print day
+            print day
             u, v, w = readVelocityData(nc_fidu,day)
             temperature, salinity = readTSData(nc_fidt,day)
             

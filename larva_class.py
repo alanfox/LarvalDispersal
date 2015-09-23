@@ -263,6 +263,51 @@ class Larva:
                      + np.random.normal(0.0,0.5)))
         swim[2] = swimspeed                                
                                         
+        return swim
+              
+    def vertical_behaviour_2(self):
+        
+        # implements swimming (or could be bouyancy) in the vertical.
+        # days for each phase are taken from Larrson et al.
+
+        # new vertical behaviour function
+        
+        # considers vertical behaviour to consist of a gaussian random 
+        # component dependent on the swimspeed plus a directional component
+        # dependent on swimspeed and age and relation to target depth or 
+        # density
+
+        swim = np.zeros((3),dtype = float)                          
+        
+        if (self.age < self.swimstart):
+            swimspeed = self.swimslow
+        elif (self.age > self.swimmax):
+            swimspeed = self.swimfast
+        else:
+            swimspeed = self.swimslow + ((self.swimfast - self.swimslow)
+                                          * (self.age - self.swimstart)
+                                          / (self.swimmax - self.swimstart))
+        # 'diffusion' coeff proportional to the square of the swim speed
+        # 3.0 is determined by simple 1d diffusion model. This is the random
+        #  part of the motion
+                                          
+        kh = (swimspeed / 2.0)**2
+        fact = np.sqrt(2.0 * kh * self.dt)
+        zdisp = np.random.normal(0.0, 1.0) * fact
+        
+        # 'flow' set to a proportion of max swimspeed. This represents the
+        # directional part of the motion. Let it fall faster than it rose,
+        # or it might not get back to the bed
+        if (self.age > self.swimstart and self.age < self.descendage):
+            flow = self.swimfast / 50.0
+        else:
+            flow = -1.5 * self.swimfast / 50.0
+        disp = flow * self.dt
+
+        zdisp = zdisp + disp
+            
+        swim[2] = zdisp                               
+                                        
         return swim              
                        
     def isoutofarea(self, position, gridt):
@@ -373,7 +418,8 @@ class Larva:
 
         # vertical swimming
             
-        self.newpos = self.pos - self.dt * self.vertical_behaviour()
+#        self.newpos = self.pos - self.dt * self.vertical_behaviour()
+        self.newpos = self.pos - self.vertical_behaviour_2()
         
 #        print 'swimming', self.newpos, self.pos
         

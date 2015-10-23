@@ -75,14 +75,12 @@ def read_mpas():
 # produce animation for larvae from a group of sites
 
 MPA_SOURCE = ('East Mingulay',
-              'Scanner Pockmark',
-              'East Rockall Bank',
               'Wyville Thomson Ridge')
 
 
 # and choose a year
 
-year = 1994
+year = 1990
 
 # timesteps per day
 
@@ -94,7 +92,7 @@ daysteps = 24.0
 
 # minimum survivable temperature
 
-min_temp = 4.0
+min_temp = 0.0
 
 # plotting area constants
 
@@ -170,11 +168,11 @@ min_release_day = int(min_t/daysteps)
 #background = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
 #            urcrnrlat = urlat, urcrnrlon = urlon,
 #            lat_1 = 55., lon_0 = -4.0, resolution='h')
-width = 1500000
-height = 1100000
+width = 950000
+height = 800000
 
 background = Basemap(width=width,height=height,projection='lcc',
-            lat_0 = 60., lon_0 = -7.0, resolution='h')
+            lat_0 = 59., lon_0 = -4.0, resolution='h')
 #-------------------------------------------------------------------
 # main plotting loop. Produces a series of plots. Compile into animation 
 # offline.

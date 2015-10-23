@@ -74,12 +74,12 @@ def read_mpas():
 
 # produce animation for larvae from a group of sites
 
-MPA_SOURCE = (['East Mingulay'])
+MPA_SOURCE = (['East Mingulay','Wyville Thomson Ridge'])
 
 
 # and choose a year
 
-year = 1995
+year = 1990
 
 # timesteps per day
 
@@ -93,7 +93,7 @@ minsettleage = 30.0 * daysteps
 
 # minimum survivable temperature
 
-min_temp = 4.0
+min_temp = 0.0
 
 # plotting area constants
 
@@ -105,7 +105,7 @@ urlon = 16.0
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1995/Run_1000_baseline/')
+            + 'polcoms1990/Run_1000_baseline/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -212,6 +212,11 @@ tot_steps_zoom = n_steps - int(30 * daysteps)
 #
 #background = Basemap(width=width,height=height,projection='lcc',
 #            lat_0 = 58.0, lon_0 = -9.0, resolution='h')
+width = 950000
+height = 800000
+
+background = Basemap(width=width,height=height,projection='lcc',
+            lat_0 = 59., lon_0 = -4.0, resolution='h')
 #width = 750000
 #height = 550000
 #
@@ -224,7 +229,7 @@ tot_steps_zoom = n_steps - int(30 * daysteps)
 
 # dead or alive
 
-plt.figure(figsize=(5, 6))
+plt.figure(figsize=(9.5, 8))
 
 not_dead = {}
 for mpa in MPA_SOURCE:
@@ -234,24 +239,24 @@ for mpa in MPA_SOURCE:
 
 for i in range(n_steps):
     print  i
-    if i < tot_steps_zoom:
-        width = 165000 + i * 221
-        height = 198000 + i * 266
-        lat_0 = 57.0 + i * (57.75 - 57.0)/float(tot_steps_zoom)
-        lon_0 = -7.0 + i * (-5.0 - (-7.0))/float(tot_steps_zoom)
-        print lat_0, lon_0
-    else:
-        width = 165000 + tot_steps_zoom * 221
-        height = 198000 + tot_steps_zoom * 266
-        lat_0 = 57.75
-        lon_0 = -5.0
+#    if i < tot_steps_zoom:
+#        width = 165000 + i * 221
+#        height = 198000 + i * 266
+#        lat_0 = 57.0 + i * (57.75 - 57.0)/float(tot_steps_zoom)
+#        lon_0 = -7.0 + i * (-5.0 - (-7.0))/float(tot_steps_zoom)
+#        print lat_0, lon_0
+#    else:
+#        width = 165000 + tot_steps_zoom * 221
+#        height = 198000 + tot_steps_zoom * 266
+#        lat_0 = 57.75
+#        lon_0 = -5.0
         
 
 #    background = Basemap(projection='lcc', llcrnrlat = lllat, llcrnrlon = lllon,
 #            urcrnrlat = urlat, urcrnrlon = urlon,
 #            lat_1 = 55., lon_0 = -4.0, resolution='c')
-    background = Basemap(width=width,height=height,projection='lcc',
-            lat_0 = lat_0, lon_0 = lon_0, resolution='h')
+#    background = Basemap(width=width,height=height,projection='lcc',
+#            lat_0 = lat_0, lon_0 = lon_0, resolution='h')
     
     diff = datetime.timedelta(hours = i)
     
@@ -357,7 +362,7 @@ for i in range(n_steps):
 #    cbar.ax.set_xlabel('depth of larva (m)',fontsize = 10) 
 #    cbar.ax.tick_params(labelsize=8)
     
-    plt.savefig(file_name,dpi = 80)
+    plt.savefig(file_name,dpi = 90)
     plt.clf()
     
     

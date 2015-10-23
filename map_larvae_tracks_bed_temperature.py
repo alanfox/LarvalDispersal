@@ -15,16 +15,17 @@ import shapefile
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from mpa_class import Mpa
+from boundary_class import Boundary
 import platform
 
 
-MPA_SOURCE = 'Geikie Slide and Hebridean Slope'
+MPA_SOURCE = 'Faroe-Shetland Sponge Belt'
 
-year = 1995
+year = 2001
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1995/Run_1000_baseline/')
+            + 'polcoms2001/Run_1000_behaviour2/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -135,6 +136,27 @@ shapes, records = read_shapefile(shapefile_root +
 for i in range(len(shapes)):
     mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
     
+    
+#boundaries
+    
+# area checking entry to    
+NorthSea = [(-3.4,58.5),(-3.0,59.0),
+                       (-1.2,60.4),(1.8,61.5),
+                       (5.8,62.0),(13.0,62.0),
+                       (13.0,51.0),(0.0,51.0),
+                       (-4.9,57.8),(-3.4,58.5)]
+
+# set up dictionary of boundaries to test crossing
+
+boundary_group = set([])
+
+boundary_group.add(Boundary('Pentland',[(-3.4,58.5),(-3.0,59.0)],NorthSea))
+boundary_group.add(Boundary('OrktoShet',[(-3.0,59.0),(-1.2,60.4)],NorthSea))
+boundary_group.add(Boundary('ShettoNorChan',[(-1.2,60.4),(1.8,61.5)],NorthSea))
+boundary_group.add(Boundary('NorChantoNor',[(1.8,61.5),(5.8,62.0)],NorthSea))
+    
+
+    
 #---------------------------------------------------------------------
 # plot the tracks
 #---------------------------------------------------------------------
@@ -156,11 +178,14 @@ plt.figure()
 #            urcrnrlat = urlat, urcrnrlon = urlon,
 #            lat_1 = 55., lon_0 = -4.0, resolution='c')
                         
-width = 750000
-height = 900000
+            
+#width = 750000
+#height = 900000
+width = 950000
+height = 800000
 
 m = Basemap(width=width,height=height,projection='lcc',
-            lat_0 = 58.0, lon_0 = -5.0, resolution='c')
+            lat_0 = 60.0, lon_0 = 4.0, resolution='c')
             
 fates = nc_fid.variables['fate'][:]
 
@@ -216,6 +241,11 @@ for mpa in mpa_group:
             colour = 'blue'
         mpa.plot_shape(m,colour)
         print mpa.get_sitename()
+
+for boundary in boundary_group:
+#    print mpa.get_sitename()
+        boundary.plot_shape(m,'green')
+
 
 #-------------------------------------------------------------------
 # plot the start and end points

@@ -84,6 +84,7 @@ class Larva:
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
         self.targetdepth = SWIM_CONST[8]
+        self.behaviour = SWIM_CONST[9]
         self.t_lower = T_LOWER
         self.t_upper = T_UPPER
                 
@@ -301,12 +302,13 @@ class Larva:
         if (self.age > self.swimstart and self.age < self.descendage):
             flow = self.swimfast / 50.0
         else:
-            flow = -1.5 * self.swimfast / 50.0
+            flow = -5.0 * self.swimfast / 50.0
         disp = flow * self.dt
 
         zdisp = zdisp + disp
             
-        swim[2] = zdisp                               
+        swim[2] = zdisp  
+#        print swim                             
                                         
         return swim              
                        
@@ -417,9 +419,11 @@ class Larva:
 #        print 'after advection', self.pos
 
         # vertical swimming
-            
-#        self.newpos = self.pos - self.dt * self.vertical_behaviour()
-        self.newpos = self.pos - self.vertical_behaviour_2()
+        
+        if (self.behaviour == 1):        
+            self.newpos = self.pos - self.dt * self.vertical_behaviour()
+        elif (self.behaviour == 2):
+            self.newpos = self.pos - self.vertical_behaviour_2()
         
 #        print 'swimming', self.newpos, self.pos
         
@@ -533,6 +537,7 @@ class Larval_tracks:
         self.minsettleage = SWIM_CONST[6]
         self.deadage = SWIM_CONST[7]
         self.targetdepth = SWIM_CONST[8]
+        self.behaviour = SWIM_CONST[9]
         self.t_lower = T_LOWER
         self.t_upper = T_UPPER
 

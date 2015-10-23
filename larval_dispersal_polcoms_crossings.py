@@ -1,34 +1,27 @@
 
 """
 
-Takes netcdf files output by larval_dispersal_polcoms.py and builds 
-a network of connections between MPAs.
-
-Mostly testing whether larvae have entered another MPA while at the 
-bed and in a 'settling' phase.
-
-Also checks that larvae remain within the temperature range in which
-they are viable.
-
+Takes netcdf files output by larval_dispersal_polcoms.py and tests whether
+they cross boundaries. For example into the North Sea.
 
 """
 from netCDF4 import Dataset
 import numpy as np
 import shapefile
 import networkx as NX
-from mpa_class import Mpa
+from boundary_class import Boundary
 from larva_class import Larval_tracks
 import platform
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1986/Run_1000_behaviour2/')
+            + 'polcoms2004/Run_1000_behaviour2/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
-graph_output_dir = run_dir + 'Networkdata/'
+graph_output_dir = run_dir + 'Crossingdata/'
 track_input_dir = run_dir + 'Trackdata/'
-mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
+mpa_name_file = open(run_dir + 'MPA_names_lophelia.txt', 'r') 
 
 input_data_file = open(run_dir + 'input.dat', 'r')
 
@@ -38,8 +31,6 @@ for line in input_data_file:
     wordlist = line.split()
     input_dict[wordlist[0]] = wordlist[-1]
         
-mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
-
 # larvae are released from MPA_SOURCE
 
 # NUM_LARVAE are released at the start of each day for RELEASE_WINDOW days
@@ -120,16 +111,16 @@ def read_shapefile(filename):
 
 # helper functions
         
-def group_settle(mpa_sprite_group, larva_object):
-    settled = False
-    for mpa in set(mpa_sprite_group):
-        if mpa.settles_2(larva_object):
-            settled = True
-    return settled
+def group_cross(boundary_sprite_group, larva_object):
+    crossed = False
+    for boundary in set(boundary_sprite_group):
+        if boundary.crosses(larva_object):
+            crossed = True
+    return crossed
 
-def group_group_settle(larval_sprite_group, mpa_sprite_group):
+def group_group_cross(larval_sprite_group, boundary_sprite_group):
     for larva in set(larval_sprite_group):
-        group_settle(mpa_sprite_group, larva)
+        group_cross(boundary_sprite_group, larva)
               
 G = NX.DiGraph()
    
@@ -143,41 +134,26 @@ for line in mpa_name_file:
     
     MPA_SOURCE = line.rstrip()
     print MPA_SOURCE
-    
-    # set up group of mpas to test for settling
-    
-    mpa_group = set([])
-    
-    # offshore SAC
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SAC_OFFSHORE_20121029_SIMPLE3')
-    for i in range(len(shapes)):
-        mpa_group.add(Mpa(shapes[i], records[i],'OFF_SAC'))
-        
-    # SAC with marine components
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SACs_withMarineComponents_20130821_SIMPLE3')
-    for i in range(len(shapes)):
-        mpa_group.add(Mpa(shapes[i], records[i],'MAR_SAC'))
-        
-    # Nature conservation MPA
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MPA_SCOTLAND_ESRI/MPA_SCOTLAND_SIMPLE3')
-    for i in range(len(shapes)):
-        mpa_group.add(Mpa(shapes[i], records[i],'MPA'))
-        
-    # Irish SACs
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
-    for i in range(len(shapes)):
-        mpa_group.add(Mpa(shapes[i], records[i],'IRISH'))
 
-    # Mikael Dahl's lophelia sites
-    shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/MikaelDahl_1')
-    for i in range(len(shapes)):
-        mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
-        
+# area checking entry to    
+    NorthSea = [(-3.4,58.5),(-3.0,59.0),
+                           (-1.2,60.4),(1.8,61.5),
+                           (5.8,62.0),(13.0,62.0),
+                           (13.0,51.0),(0.0,51.0),
+                           (-4.9,57.8),(-3.4,58.5)]
+
+    # set up dictionary of boundaries to test crossing
+    
+    boundary_group = set([])
+    
+    boundary_group.add(Boundary('Pentland',[(-3.4,58.5),(-3.0,59.0)],NorthSea))
+    boundary_group.add(Boundary('OrktoShet',[(-3.0,59.0),(-1.2,60.4)],NorthSea))
+    boundary_group.add(Boundary('ShettoNorChan',[(-1.2,60.4),(1.8,61.5)],NorthSea))
+    boundary_group.add(Boundary('NorChantoNor',[(1.8,61.5),(5.8,62.0)],NorthSea))
+    
     # initialise larvae. 
     nc_file = (track_input_dir + MPA_SOURCE + '.nc')
     nc_fid = Dataset(nc_file, 'r')
-    
-    # Using grids of larvae at the same depth around a central point.
     
     larvae_group = set([])
 
@@ -207,28 +183,31 @@ for line in mpa_name_file:
                                            
     nc_fid.close()
     
-#    print 'group_group_settle'
-
-    group_group_settle(larvae_group, mpa_group)
+    group_group_cross(larvae_group, boundary_group)
+#    group_group_enter(larvae_group, shapes)
             
     # output the connectivity graph
-    
-    
+        
     # build graph
     G.clear()
     
     G.add_node(MPA_SOURCE)
     
-    for mpa in mpa_group:
-        nsettled = mpa.get_settled()
-        if nsettled != 0:
-            mpa_name = mpa.get_sitename()
-            weight = float(nsettled) / float(nlarvae)
-            G.add_weighted_edges_from([(MPA_SOURCE,mpa_name,weight)])
+    for boundary in boundary_group:
+        ncrossed = boundary.get_crossed()
+        nstayed = boundary.get_stayed()
+        if ncrossed != 0:
+            boundary_name = boundary.get_boundary_name()
+            ncrossed = ncrossed
+            nstayed = nstayed
+            d = {}
+            d['ncrossed'] = ncrossed
+            d['nstayed'] = nstayed
+            G.add_edges_from([(MPA_SOURCE,boundary_name,d)])
                        
     # output graph to file
 #
-    outfile = open(graph_output_dir + MPA_SOURCE + '.graphml', 'w')
+    outfile = open(graph_output_dir + MPA_SOURCE + '_crosses.graphml', 'w')
     NX.write_graphml(G,outfile)
     outfile.close()
     

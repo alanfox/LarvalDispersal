@@ -43,7 +43,7 @@ from larva_class import Larva
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1994/Run_1000_behaviour2/')
+            + 'polcoms1989/Run_1000_baseline/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -105,6 +105,9 @@ DEATH = bool(int(input_dict['DEATH']))
 # average age SWIMMAX. Then swimming gradually directed more downwards from 
 # age DESCENDAGE up to DEADAGE.
 
+BEHAVIOUR = int(input_dict['BEHAVIOUR'])    # behaviour index
+# 1 is standard Larrson et al behaviour
+# 2 is modified Larsson et al with small swimming speeds
 TARGETDEPTH = float(input_dict['TARGETDEPTH'])    # target depth
 SWIMSLOW = float(input_dict['SWIMSLOW'])          #initial swimming speed
 SWIMFAST = float(input_dict['SWIMFAST'])      # max swimming speed
@@ -141,7 +144,7 @@ T_UPPER = 100.0
 RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
 SWIM_CONST = [SWIMSLOW,SWIMFAST,SWIMSTART,SWIMMAX,
               DESCENDAGE,DESCENDAGERANGE,
-              MINSETTLEAGE,DEADAGE,TARGETDEPTH]
+              MINSETTLEAGE,DEADAGE,TARGETDEPTH, BEHAVIOUR]
               
 
 def readVelocityData(nc_fid, n):
@@ -414,7 +417,7 @@ for line in mpa_name_file:
         
         if ((runtime % SECONDS_IN_DAY) < DT/2.0):
             day = day + 1
-            print day
+#            print day
             u, v, w = readVelocityData(nc_fidu,day)
             temperature, salinity = readTSData(nc_fidt,day)
             

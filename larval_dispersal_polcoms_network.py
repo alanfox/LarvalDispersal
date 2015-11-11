@@ -22,7 +22,7 @@ import platform
 
 if platform.system() == 'Windows':
     run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms1986/Run_1000_behaviour2/')
+            + 'polcoms1989/Run_1000_baseline/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 

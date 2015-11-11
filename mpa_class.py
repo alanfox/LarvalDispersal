@@ -97,36 +97,44 @@ class Mpa:
         return False
         
     def settles_2(self,larva):
-        # tests if an object of class Larva_tracks settles in the mpa
-        lon = larva.get_lon()
-        lat = larva.get_lat()
-        bed = larva.get_bed()
-        life = len(lon)
-        settleage = larva.get_settleage()
-        ofsettleage = np.array(range(life)) >= settleage
-        # first test that larva remains in viable temperature range
-        # until settleage
-        temp = np.array(larva.get_temp())
-        t_lower, t_upper = larva.get_temp_range()
-        warm = temp >= t_lower
-        cool = temp <= t_upper
-# cumprod as once dead stays dead
-        alive = np.cumprod(warm * cool)
-        
-# select points where larva are ready to settle, at the bed and alive
-        larva_bed_points = [(lon[i],lat[i]) for i in range(life) 
-                                            if (ofsettleage[i] and bed[i]==1
-                                            and alive[i])]
+#        # tests if an object of class Larva_tracks settles in the mpa
+#        lon = larva.get_lon()
+#        lat = larva.get_lat()
+#        bed = larva.get_bed()
+#        life = len(lon)
+#        settleage = larva.get_settleage()
+#        ofsettleage = np.array(range(life)) >= settleage
+#        # first test that larva remains in viable temperature range
+#        # until settleage
+#        temp = np.array(larva.get_temp())
+#        t_lower, t_upper = larva.get_temp_range()
+#        warm = temp >= t_lower
+#        cool = temp <= t_upper
+## cumprod as once dead stays dead
+#        alive = np.cumprod(warm * cool)
+#        
+## select points where larva are ready to settle, at the bed and alive
+#        larva_bed_points = [(lon[i],lat[i]) for i in range(life) 
+#                                            if (ofsettleage[i] and bed[i]==1
+#                                            and alive[i])]
+
+        larva_bed_points = larva.get_bed_points()
+        larva_bed_points_bbox = larva.get_bbox_bed_points()
 
         if len(larva_bed_points) == 0:
             return False   
-        else:
+        elif self.bbox_overlap(self.bbox,larva_bed_points_bbox):
             x = self.shape_path.contains_points(larva_bed_points)
             if any(x):
                 self.nsettled = self.nsettled + 1
                 return True
         return False
-        
+
+    def bbox_overlap(self,bbox1,bbox2):
+        hoverlaps = (bbox1[0] <= bbox2[2]) and (bbox1[2] >= bbox2[0])
+        voverlaps = (bbox1[3] >= bbox2[1]) and (bbox1[1] <= bbox2[3])
+        return hoverlaps and voverlaps        
+
     def bng2lonlat(self,bng):
         lonlat = []
         for i in range(len(bng)):

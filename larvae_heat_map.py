@@ -92,17 +92,41 @@ longitude = gridt.get_longitude()
 print len(latitude)
 print len(longitude)
 
+# read in GEBCO bathymetry
 
-MPA_SOURCE = (['East Mingulay'])
+nc_infile = ('C:/Users/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
+
+nc_gebco = Dataset(nc_infile,'r')
+
+bathymetry = nc_gebco.variables['elevation'][:]
+lat_bath = nc_gebco.variables['lat'][:]    
+lon_bath = nc_gebco.variables['lon'][:]    
+
+nc_gebco.close()
+
+
+#MPA_SOURCE = (['Anton Dohrn Seamount',
+#               'Darwin Mounds',
+#               'East Mingulay',
+#               'East Rockall Bank',
+#               'Faroe-Shetland Sponge Belt',
+#               'Hatton Bank',
+#               'North West Rockall Bank',
+#               'Rosemary Bank Seamount',
+#               'South-East Rockall Bank SAC',
+#               'Wyville Thomson Ridge',
+#               'Norwegian Boundary Sediment Plain',
+#               'Central Fladen'])
+
+MPA_SOURCE = (['Hatton Bank'])
 
 x = []
 y = []
 z = []
 # and choose a year
 
-for year in range(1990,2001):
+for year in range(1965,2005):
     year_str = str(year)
-    day = 60
     
     # timesteps per day
     
@@ -117,7 +141,7 @@ for year in range(1990,2001):
     min_temp = 0.0
     
     if platform.system() == 'Windows':
-        run_dir = ('C:/Users/af26/LarvalDispersalResults/'
+        run_dir = ('E:/af26/LarvalDispersalResults/'
                 + 'polcoms'+year_str+'/Run_1000_baseline/')
     elif platform.system() == 'Linux':
         run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
@@ -151,39 +175,28 @@ for year in range(1990,2001):
         not_dead[mpa] = temperature > min_temp
         not_dead[mpa] = np.cumprod(not_dead[mpa],axis = 1)
     
-    i = day * daysteps
-       
-    diff = datetime.timedelta(hours = i)
-    
-    timenow = starttime + diff
-    
-    #m = background
-    ## etopo is the topography/ bathymetry map background
-    ##m.bluemarble()
-    #m.drawcoastlines()
-    #    
-    #    # alternative plain map background
-    #m.fillcontinents(color='black',lake_color='darkblue')
-    #    
-    #    # draw parallels and meridians.
-    #m.drawparallels(np.arange(40.,66.,2.),labels = [1,0,0,0],fontsize = 8)
-    #m.drawmeridians(np.arange(-24.,13.,4.),labels = [0,0,0,1],fontsize = 8)
-    #    #m.drawmapboundary(fill_color='skyblue')
-    #plt.title(timenow.strftime("%Y %b %d %H:%M"), loc = 'left')
-    
-    #for mpa in mpa_group:
-    ##    print mpa.get_sitename()
-    #    if mpa.get_sitename() in MPA_SOURCE:
-    #        colour = 'red'
-    #    else:
-    #        colour = 'blue'
-    #    mpa.plot_shape(background,colour)
-            
-    
-    
-    
-    
-    
+        #m = background
+        ## etopo is the topography/ bathymetry map background
+        ##m.bluemarble()
+        #m.drawcoastlines()
+        #    
+        #    # alternative plain map background
+        #m.fillcontinents(color='black',lake_color='darkblue')
+        #    
+        #    # draw parallels and meridians.
+        #m.drawparallels(np.arange(40.,66.,2.),labels = [1,0,0,0],fontsize = 8)
+        #m.drawmeridians(np.arange(-24.,13.,4.),labels = [0,0,0,1],fontsize = 8)
+        #    #m.drawmapboundary(fill_color='skyblue')
+        #plt.title(timenow.strftime("%Y %b %d %H:%M"), loc = 'left')
+        
+        #for mpa in mpa_group:
+        ##    print mpa.get_sitename()
+        #    if mpa.get_sitename() in MPA_SOURCE:
+        #        colour = 'red'
+        #    else:
+        #        colour = 'blue'
+        #    mpa.plot_shape(background,colour)                        
+                
     for mpa in MPA_SOURCE:
         releasedays = nc_fid[mpa].variables['release day'][:]
         
@@ -195,14 +208,23 @@ for year in range(1990,2001):
             depth = nc_fid[mpa].variables['depth'][ii,:]
             temperature = nc_fid[mpa].variables['temperature'][ii,:]
             latdatarange = np.ma.flatnotmasked_edges(lat)
-            if (not_dead[mpa][ii,i]):
-                x.append(lon[i])
-                y.append(lat[i])
+            for day in range(50,63):
+                i = day * daysteps
+                if (not_dead[mpa][ii,i]):
+                    x.append(lon[i])
+                    y.append(lat[i])
             ii += 1
-        
-
+            
+plt.figure()
 plt.hist2d(x,y,[longitude,latitude], cmin = 0.1)
-
+# save 300 m contour line
+cs = plt.contour(lon_bath,lat_bath,bathymetry,[-1000,-300])
+# colours land in black
+plt.contourf(lon_bath,lat_bath,bathymetry,[0,5000], colors = 'lightgreen')
+plt.contour(lon_bath,lat_bath,bathymetry,[0,5000], colors = 'black')
+plt.ylabel('latitude')
+plt.xlabel('longitude')
+plt.show()
 #            
 ##    m.scatter(x,y, s = 5, marker = "o", c = z, 
 ##              cmap = cmap, norm = norm, edgecolor = 'none', latlon = True)

@@ -540,6 +540,44 @@ class Larval_tracks:
         self.behaviour = SWIM_CONST[9]
         self.t_lower = T_LOWER
         self.t_upper = T_UPPER
+        
+        #calculate and store parameters for use later
+        
+        self.points = zip(lon,lat)
+        life = len(self.lon)
+        self.settleage = int(self.minsettleage * self.seconds_in_day / self.dt)
+        ofsettleage = np.array(range(life)) >= self.settleage
+        # first test that larva remains in viable temperature range
+        # until settleage
+        temp = np.array(self.temp)
+        warm = temp >= self.t_lower
+        cool = temp <= self.t_upper
+# cumprod as once dead stays dead
+        alive = np.cumprod(warm * cool)
+
+# select points where larvae are alive
+        self.live_points = [(self.lon[i],self.lat[i]) for i in range(life) 
+                                            if (alive[i])]
+        
+# select points where larva are ready to settle, at the bed and alive
+        self.bed_points = [(self.lon[i],self.lat[i]) for i in range(life) 
+                                            if (ofsettleage[i] and bed[i]==1
+                                            and alive[i])]
+                                            
+# find boundary boxes                                            
+        self.bbox_points = [min(lon),min(lat),max(lon),max(lat)]
+        if len(self.bed_points) != 0:
+            x,y = zip(*self.bed_points)
+            self.bbox_bed_points = [min(x),min(y),max(x),max(y)]
+        else:
+            self.bbox_bed_points = []                 
+        if len(self.live_points) != 0:
+            x,y = zip(*self.live_points)
+            self.bbox_live_points = [min(x),min(y),max(x),max(y)]
+        else:
+            self.bbox_live_points = []                 
+        
+        
 
     def get_lon(self):
         return self.lon
@@ -560,4 +598,22 @@ class Larval_tracks:
         return self.t_lower, self.t_upper
              
     def get_settleage(self):
-        return int(self.minsettleage * self.seconds_in_day / self.dt)
+        return self.settleage
+
+    def get_points(self):
+        return self.points
+
+    def get_bed_points(self):
+        return self.bed_points
+
+    def get_live_points(self):
+        return self.live_points
+                
+    def get_bbox_points(self):
+        return self.bbox_points
+        
+    def get_bbox_bed_points(self):
+        return self.bbox_bed_points
+        
+    def get_bbox_live_points(self):
+        return self.bbox_live_points

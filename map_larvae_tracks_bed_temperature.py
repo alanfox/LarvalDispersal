@@ -19,13 +19,15 @@ from boundary_class import Boundary
 import platform
 
 
-MPA_SOURCE = 'Faroe-Shetland Sponge Belt'
+MPA_SOURCE = 'Wyville Thomson Ridge'
 
-year = 2001
+year = 1976
 
 if platform.system() == 'Windows':
-    run_dir = ('C:/Users/af26/LarvalDispersalResults/'
-            + 'polcoms2001/Run_1000_behaviour2/')
+    run_dir = ('X:/Lophelia Share/Alan/LarvalDispersalResults/'
+            + 'polcoms1996/Run_1000_doublelife/')
+#    run_dir = ('E:/af26/LarvalDispersalResults/'
+#            + 'polcoms1996/Run_1000_behaviour2/')
 elif platform.system() == 'Linux':
     run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
 
@@ -139,22 +141,89 @@ for i in range(len(shapes)):
     
 #boundaries
     
-# area checking entry to    
-NorthSea = [(-3.4,58.5),(-3.0,59.0),
-                       (-1.2,60.4),(1.8,61.5),
-                       (5.8,62.0),(13.0,62.0),
-                       (13.0,51.0),(0.0,51.0),
-                       (-4.9,57.8),(-3.4,58.5)]
-
 # set up dictionary of boundaries to test crossing
+nc_infile = ('C:/Users/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
+
+nc_gebco = Dataset(nc_infile,'r')
+
+elevation = nc_gebco.variables['elevation'][:]
+lat = nc_gebco.variables['lat'][:]    
+lon = nc_gebco.variables['lon'][:] 
+   
+# save 300 m contour line
+cs = plt.contour(lon,lat,elevation,[-200])
+# colours land in black
+
+# extract points along the line
+# index [0] in get_paths()[0] is a single continuous path if
+# contour is broken.
+# Need to look at result to check the right section is selected
+
+p = cs.collections[0].get_paths()[0]
+v = p.vertices
+x = v[:,0]
+y = v[:,1]
+
+# cut this into sections to test
+# crossings in each section.
+
+x1  = [x[i] for i in range(len(x)) if x[i] < -6.2 
+                                    and y[i] > 54.0 and y[i] < 57.94]
+y1  = [y[i] for i in range(len(x)) if x[i] < -6.2 
+                                    and y[i] > 54.0 and y[i] < 57.94]
+x2  = [x[i] for i in range(len(x)) if x[i] < -6.2 
+                                    and y[i] > 57.94]
+y2  = [y[i] for i in range(len(x)) if x[i] < -6.2 
+                                    and y[i] > 57.94]
+x3  = [x[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4 
+                                    and y[i] > 54.0]
+y3  = [y[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4
+                                    and y[i] > 54.0]
+x4  = [x[i] for i in range(len(x)) if x[i] >= 1.4 
+                                    and y[i] > 54.0 and y[i] < 62.0]
+y4  = [y[i] for i in range(len(x)) if x[i] >= 1.4
+                                    and y[i] > 54.0 and y[i] < 62.0]
+
+a1 = [(-11.0,54.0),(-9.5,54.0)]
+a2 = [(-9.21,57.94),(-8.57,57.81),(-7.29,57.60),
+              (-6.35,57.41),(-5.2,57.3)]
+a3 = [(-5.0,58.6),(-6.2,59.55)]
+a4 = [(-3.4,58.5),(-3.0,59.0)]
+a5 = [(-3.0,59.0),(-1.2,60.4)]
+a6 = [(-1.2,60.4),(1.4,61.72)]
+b1 = [(-11,54.0),(-20,54.0)] 
+b2 = [(-9.21,57.94),(-13.9,58.9),(-20,58.9)]
+b3 = [(-6.2,59.55),(-8.9,60.9),(-17.0,65.0)]
+b4 = [(1.4,61.72),(-2.5,62.6),(-10.0,65.0)]
+b5 = [(13.0,62.0),(4.07,62.0),(0.0,65.0)]
+b6 = [(1.4,61.72),(4.07,62.0)]
+c1 = [(-12.0,54.0),(-12,65.0)]
+s1 = zip(x1,y1)
+s2 = zip(x2,y2)
+s3 = zip(x3,y3)
+s4 = zip(x4,y4)
+
+nc_gebco.close()
 
 boundary_group = set([])
-
-boundary_group.add(Boundary('Pentland',[(-3.4,58.5),(-3.0,59.0)],NorthSea))
-boundary_group.add(Boundary('OrktoShet',[(-3.0,59.0),(-1.2,60.4)],NorthSea))
-boundary_group.add(Boundary('ShettoNorChan',[(-1.2,60.4),(1.8,61.5)],NorthSea))
-boundary_group.add(Boundary('NorChantoNor',[(1.8,61.5),(5.8,62.0)],NorthSea))
-    
+boundary_group.add(Boundary('A1',a1))
+boundary_group.add(Boundary('A2',a2))
+boundary_group.add(Boundary('A3',a3))
+boundary_group.add(Boundary('A4',a4))
+boundary_group.add(Boundary('A5',a5))
+boundary_group.add(Boundary('A6',a6))
+boundary_group.add(Boundary('B1',b1))
+boundary_group.add(Boundary('B2',b2))
+boundary_group.add(Boundary('B3',b3))
+boundary_group.add(Boundary('B4',b4))
+boundary_group.add(Boundary('B5',b5))
+boundary_group.add(Boundary('B6',b6))
+boundary_group.add(Boundary('C1',c1))
+boundary_group.add(Boundary('S1',s1))
+boundary_group.add(Boundary('S2',s2))
+boundary_group.add(Boundary('S3',s3))
+boundary_group.add(Boundary('S4',s4))
+                                           
 
     
 #---------------------------------------------------------------------
@@ -181,11 +250,11 @@ plt.figure()
             
 #width = 750000
 #height = 900000
-width = 950000
-height = 800000
+width = 1900000
+height = 1600000
 
 m = Basemap(width=width,height=height,projection='lcc',
-            lat_0 = 60.0, lon_0 = 4.0, resolution='c')
+            lat_0 = 58.0, lon_0 = -4.0, resolution='c')
             
 fates = nc_fid.variables['fate'][:]
 

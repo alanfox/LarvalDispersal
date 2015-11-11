@@ -15,31 +15,30 @@ from mpa_class import Mpa
 
 """
 import matplotlib.pyplot as plt
-import matplotlib.path as mplPath
-import numpy as np
+#import matplotlib.path as mplPath
+#import numpy as np
+from shapely.geometry import LineString
+
 
 class Boundary:
     
-    def __init__(self, name, points, area):
-# points is a list of lon,lat pairs (tuples)        
+    def __init__(self, name, points):
+# points is a list of lon,lat pairs (tuples)    
         
         self.name = name        
         self.points = points
-        self.area = area
-        self.path = mplPath.Path(self.points)
-        self.area_path = mplPath.Path(self.area)
+        self.path = LineString(points)
         self.ncrossed = 0
         self.nstayed = 0
+        self.lon, self.lat = zip(*self.points)
+        self.bbox = self.path.bounds
         
     def get_boundary_name(self):
         return self.name
 
     def get_points(self):
         return self.points
-        
-    def get_area(self):
-        return self.area
-               
+                       
     def get_crossed(self):
         return self.ncrossed
         
@@ -47,31 +46,34 @@ class Boundary:
         return self.nstayed
                 
     def crosses(self,larva):
-        # tests if an object of class Larva_tracks settles in the mpa
-        lon = larva.get_lon()
-        lat = larva.get_lat()
-        life = len(lon)
-# cumprod as once dead stays dead
-        # first test that larva remains in viable temperature range
-        temp = np.array(larva.get_temp())
-        t_lower, t_upper = larva.get_temp_range()
-        warm = temp >= t_lower
-        cool = temp <= t_upper
-        alive = np.cumprod(warm * cool)
-# select points where larva are ready to settle, at the bed and alive
-        larva_points = [(lon[i],lat[i]) for i in range(life) 
-                                            if (alive[i])]
+        # tests if an object of class Larva_tracks crosses the boundary
+        # tests for returns by looking for odd or even numbers of crossings
+        # odd number of crossings means stayed crossed
+        # does not account for touching as unlikely 
 
-        if len(larva_points) == 0:
+        larva_live_points = larva.get_live_points()
+        larva_live_points_bbox = larva.get_bbox_live_points()
+
+        if len(larva_live_points) == 0:
             return False   
-        else:
-            x = self.path.intersects_path(mplPath.Path(larva_points))
+        elif self.bbox_overlap(self.bbox,larva_live_points_bbox):
+            path_larva = LineString(larva_live_points)
+            x = self.path.intersects(path_larva)
             if x:
                 self.ncrossed = self.ncrossed + 1
-                if self.area_path.contains_point(larva_points[-1]):
+                crossings = self.path.intersection(path_larva)
+                try:
+                    self.nstayed = self.nstayed + len(crossings)%2                    
+                except TypeError:
                     self.nstayed = self.nstayed + 1
                 return True
         return False
+
+    def bbox_overlap(self,bbox1,bbox2):
+        hoverlaps = (bbox1[0] <= bbox2[2]) and (bbox1[2] >= bbox2[0])
+        voverlaps = (bbox1[3] >= bbox2[1]) and (bbox1[1] <= bbox2[3])
+        return hoverlaps and voverlaps        
+
                 
     def plot_shape(self, m, colour):
         x = []

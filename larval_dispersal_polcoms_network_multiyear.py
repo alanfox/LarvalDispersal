@@ -1,17 +1,24 @@
+
 """
 
-Takes netcdf files output by larval_dispersal_polcoms.py and tests whether
-they cross boundaries. For example into the North Sea.
+Takes netcdf files output by larval_dispersal_polcoms.py and builds 
+a network of connections between MPAs.
+
+Mostly testing whether larvae have entered another MPA while at the 
+bed and in a 'settling' phase.
+
+Also checks that larvae remain within the temperature range in which
+they are viable.
+
 
 """
 from netCDF4 import Dataset
 import numpy as np
 import shapefile
 import networkx as NX
-from boundary_class import Boundary
+from mpa_class import Mpa
 from larva_class import Larval_tracks
 import platform
-import matplotlib.pyplot as plt
 
 def read_shapefile(filename):
     sf = shapefile.Reader(filename)
@@ -21,106 +28,31 @@ def read_shapefile(filename):
 
 # helper functions
         
-def group_cross(boundary_sprite_group, larva_object):
-    crossed = False
-    for boundary in set(boundary_sprite_group):
-        if boundary.crosses(larva_object):
-            crossed = True
-    return crossed
+def group_settle(mpa_sprite_group, larva_object):
+    settled = False
+    for mpa in set(mpa_sprite_group):
+        if mpa.settles_2(larva_object):
+            settled = True
+    return settled
 
-def group_group_cross(larval_sprite_group, boundary_sprite_group):
+def group_group_settle(larval_sprite_group, mpa_sprite_group):
     for larva in set(larval_sprite_group):
-        group_cross(boundary_sprite_group, larva)
-        
-# set up boundaries
-# some are based on contours, others just lines
-              
-nc_infile = ('C:/Users/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
+        group_settle(mpa_sprite_group, larva)
+                  
 
-nc_gebco = Dataset(nc_infile,'r')
-
-elevation = nc_gebco.variables['elevation'][:]
-lat = nc_gebco.variables['lat'][:]    
-lon = nc_gebco.variables['lon'][:] 
-   
-# save 300 m contour line
-cs = plt.contour(lon,lat,elevation,[-200])
-# colours land in black
-
-# extract points along the line
-# index [0] in get_paths()[0] is a single continuous path if
-# contour is broken.
-# Need to look at result to check the right section is selected
-
-p = cs.collections[0].get_paths()[0]
-v = p.vertices
-x = v[:,0]
-y = v[:,1]
-
-# cut this into sections to test
-# crossings in each section.
-
-x1  = [x[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 54.0 and y[i] < 57.94]
-y1  = [y[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 54.0 and y[i] < 57.94]
-x2  = [x[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 57.94]
-y2  = [y[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 57.94]
-x3  = [x[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4 
-                                    and y[i] > 54.0]
-y3  = [y[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4
-                                    and y[i] > 54.0]
-x4  = [x[i] for i in range(len(x)) if x[i] >= 1.4 
-                                    and y[i] > 54.0 and y[i] < 62.0]
-y4  = [y[i] for i in range(len(x)) if x[i] >= 1.4
-                                    and y[i] > 54.0 and y[i] < 62.0]
-
-a1 = [(-9.5,54.0),(-11.0,54.0)]
-a2 = [(-5.2,57.3),(-6.35,57.41),(-7.29,57.60),(-8.57,57.81),(-9.21,57.94)]
-a3 = [(-5.0,58.6),(-6.2,59.55)]
-a4 = [(-3.4,58.5),(-3.0,59.0)]
-a5 = [(-3.0,59.0),(-1.2,60.4)]
-a6 = [(-1.2,60.4),(1.4,61.72)]
-b1 = [(-11,54.0),(-20,54.0)] 
-b2 = [(-9.21,57.94),(-13.9,58.9),(-20,58.9)]
-b3 = [(-6.2,59.55),(-8.9,60.9),(-17.0,65.0)]
-b4 = [(-10.0,65.0),(-2.5,62.6),(1.4,61.72)]
-b5 = [(13.0,62.0),(4.07,62.0),(0.0,65.0)]
-b6 = [(1.4,61.72),(4.07,62.0)]
-c1 = [(-12.0,54.0),(-12,65.0)]
-s1 = zip(x1,y1)
-s2 = zip(x2,y2)
-s3 = zip(x3,y3)
-s4 = zip(x4,y4)
-# some combined sections
-d1 = a1 + b1[1:]
-d2 = a2 + b2[1:]
-d3 = a3 + b3[1:]
-d4 = s1 + s2 + s3 + s4
-d5 = s4 + b6[0:1]
-d6 = a4 + a5[1:] + a6[1:] + s4
-d7 = a4 + a5[1:] + a6[1:] + b6[1:] + b5[0:1]
-d8 = b4 + b6[1:] + b5[0:1]
-
-nc_gebco.close()
-
-for iyear in range(1993,2005):
+for year in range(1965,1972):
     
-    print iyear
+    print year
 
     if platform.system() == 'Windows':
-#        run_dir = ('E:/af26/LarvalDispersalResults/'
-#                + 'polcoms'+str(iyear)+'/Run_1000_behaviour2/')
         run_dir = ('E:/af26/LarvalDispersalResults/'
-                + 'polcoms'+str(iyear)+'/Run_1000_baseline/')
+                + 'polcoms'+str(year)+'/Run_1000_behaviour2/')
     elif platform.system() == 'Linux':
         run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
     
-    graph_output_dir = run_dir + 'Crossingdata/'
+    graph_output_dir = run_dir + 'Networkdata/'
     track_input_dir = run_dir + 'Trackdata/'
-    mpa_name_file = open( 'E:/af26/MPAlists/MPA_names_lophelia.txt', 'r') 
+    mpa_name_file = open('E:/af26/MPAlists/MPA_names.txt', 'r') 
     
     input_data_file = open(run_dir + 'input.dat', 'r')
     
@@ -129,9 +61,9 @@ for iyear in range(1993,2005):
     for line in input_data_file:
         wordlist = line.split()
         input_dict[wordlist[0]] = wordlist[-1]
-        
+                
     input_data_file.close()
-            
+    
     # larvae are released from MPA_SOURCE
     
     # NUM_LARVAE are released at the start of each day for RELEASE_WINDOW days
@@ -196,6 +128,7 @@ for iyear in range(1993,2005):
     T_LOWER = -10.0
     T_UPPER = 100.0     
         
+        
     # bring constants together for passing to larva class
     
     RUN_CONST = [SECONDS_IN_DAY, M_TO_DEGREE, DT, KM, VERTICAL_INTERP]
@@ -208,48 +141,48 @@ for iyear in range(1993,2005):
     # loop over larval track files
        
     for line in mpa_name_file:
-#        if platform.system() == 'Windows':    
-#            shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
-#        elif platform.system() == 'Linux':
-#            shapefile_root =   '/home/af26/Shapefiles/' #linux
+        if platform.system() == 'Windows':    
+            shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
+        elif platform.system() == 'Linux':
+            shapefile_root =   '/home/af26/Shapefiles/' #linux
         
         MPA_SOURCE = line.rstrip()
         print MPA_SOURCE
         
-        # set up dictionary of boundaries to test crossing
+        # set up group of mpas to test for settling
         
-        boundary_group = set([])
+        mpa_group = set([])
         
-        
-        boundary_group.add(Boundary('A1',a1))
-        boundary_group.add(Boundary('A2',a2))
-        boundary_group.add(Boundary('A3',a3))
-        boundary_group.add(Boundary('A4',a4))
-        boundary_group.add(Boundary('A5',a5))
-        boundary_group.add(Boundary('A6',a6))
-        boundary_group.add(Boundary('B1',b1))
-        boundary_group.add(Boundary('B2',b2))
-        boundary_group.add(Boundary('B3',b3))
-        boundary_group.add(Boundary('B4',b4))
-        boundary_group.add(Boundary('B5',b5))
-        boundary_group.add(Boundary('B6',b6))
-        boundary_group.add(Boundary('C1',c1))
-        boundary_group.add(Boundary('S1',s1))
-        boundary_group.add(Boundary('S2',s2))
-        boundary_group.add(Boundary('S3',s3))
-        boundary_group.add(Boundary('S4',s4))
-        boundary_group.add(Boundary('D1',d1))
-        boundary_group.add(Boundary('D2',d2))
-        boundary_group.add(Boundary('D3',d3))
-        boundary_group.add(Boundary('D4',d4))
-        boundary_group.add(Boundary('D5',d5))
-        boundary_group.add(Boundary('D6',d6))
-        boundary_group.add(Boundary('D7',d7))
-        boundary_group.add(Boundary('D8',d8))
-                                           
+        # offshore SAC
+        shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SAC_OFFSHORE_20121029_SIMPLE3')
+        for i in range(len(shapes)):
+            mpa_group.add(Mpa(shapes[i], records[i],'OFF_SAC'))
+            
+        # SAC with marine components
+        shapes, records = read_shapefile('C:/Users/af26/Shapefiles/UK_SAC_MAR_GIS_20130821b/UK_SAC_MAR_GIS_20130821b/SCOTLAND_SACs_withMarineComponents_20130821_SIMPLE3')
+        for i in range(len(shapes)):
+            mpa_group.add(Mpa(shapes[i], records[i],'MAR_SAC'))
+            
+        # Nature conservation MPA
+        shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MPA_SCOTLAND_ESRI/MPA_SCOTLAND_SIMPLE3')
+        for i in range(len(shapes)):
+            mpa_group.add(Mpa(shapes[i], records[i],'MPA'))
+            
+        # Irish SACs
+        shapes, records = read_shapefile('C:/Users/af26/Shapefiles/SAC_ITM_WGS84_2015_01/SAC_Offshore_WGS84_2015_01')
+        for i in range(len(shapes)):
+            mpa_group.add(Mpa(shapes[i], records[i],'IRISH'))
+    
+        # Mikael Dahl's lophelia sites
+        shapes, records = read_shapefile('C:/Users/af26/Shapefiles/MikaelDahl/MikaelDahl_1')
+        for i in range(len(shapes)):
+            mpa_group.add(Mpa(shapes[i], records[i],'Dahl'))
+            
         # initialise larvae. 
         nc_file = (track_input_dir + MPA_SOURCE + '.nc')
         nc_fid = Dataset(nc_file, 'r')
+        
+        # Using grids of larvae at the same depth around a central point.
         
         larvae_group = set([])
     
@@ -279,35 +212,31 @@ for iyear in range(1993,2005):
                                                
         nc_fid.close()
         
-        group_group_cross(larvae_group, boundary_group)
-    #    group_group_enter(larvae_group, shapes)
+    #    print 'group_group_settle'
+    
+        group_group_settle(larvae_group, mpa_group)
                 
         # output the connectivity graph
-            
+        
+        
         # build graph
         G.clear()
         
         G.add_node(MPA_SOURCE)
         
-        for boundary in boundary_group:
-            ncrossed = boundary.get_crossed()
-            nstayed = boundary.get_stayed()
-            if ncrossed != 0:
-                boundary_name = boundary.get_boundary_name()
-                ncrossed = ncrossed
-                nstayed = nstayed
-                d = {}
-                d['ncrossed'] = ncrossed
-                d['nstayed'] = nstayed
-                G.add_edges_from([(MPA_SOURCE,boundary_name,d)])
+        for mpa in mpa_group:
+            nsettled = mpa.get_settled()
+            if nsettled != 0:
+                mpa_name = mpa.get_sitename()
+                weight = float(nsettled) / float(nlarvae)
+                G.add_weighted_edges_from([(MPA_SOURCE,mpa_name,weight)])
                            
         # output graph to file
     #
-        outfile = open(graph_output_dir + MPA_SOURCE + '_crosses.graphml', 'w')
+        outfile = open(graph_output_dir + MPA_SOURCE + '.graphml', 'w')
         NX.write_graphml(G,outfile)
         outfile.close()
-    mpa_name_file.close()
     
-
+    mpa_name_file.close()
     
 

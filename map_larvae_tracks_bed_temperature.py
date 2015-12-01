@@ -25,7 +25,7 @@ year = 1976
 
 if platform.system() == 'Windows':
     run_dir = ('X:/Lophelia Share/Alan/LarvalDispersalResults/'
-            + 'polcoms1996/Run_1000_doublelife/')
+            + 'polcoms' + str(year) + '/Run_1000_doublelife/')
 #    run_dir = ('E:/af26/LarvalDispersalResults/'
 #            + 'polcoms1996/Run_1000_behaviour2/')
 elif platform.system() == 'Linux':

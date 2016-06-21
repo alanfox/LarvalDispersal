@@ -34,7 +34,9 @@ def group_group_cross(larval_sprite_group, boundary_sprite_group):
         
 # set up boundaries
 # some are based on contours, others just lines
-              
+
+# read in the topography
+            
 nc_infile = ('C:/Users/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
 
 nc_gebco = Dataset(nc_infile,'r')
@@ -43,8 +45,11 @@ elevation = nc_gebco.variables['elevation'][:]
 lat = nc_gebco.variables['lat'][:]    
 lon = nc_gebco.variables['lon'][:] 
    
+# using matplotlib routines to pull the contours out of the
+# topography file. There must be a more elegant way.
+
 # save 300 m contour line
-cs = plt.contour(lon,lat,elevation,[-200])
+cs = plt.contour(lon,lat,elevation,[-200],colors = 'k',linestyles = 'solid')
 # colours land in black
 
 # extract points along the line
@@ -52,61 +57,42 @@ cs = plt.contour(lon,lat,elevation,[-200])
 # contour is broken.
 # Need to look at result to check the right section is selected
 
-p = cs.collections[0].get_paths()[0]
+p = cs.collections[0].get_paths()[6]
 v = p.vertices
 x = v[:,0]
 y = v[:,1]
+points = zip(x,y)
 
 # cut this into sections to test
 # crossings in each section.
 
-x1  = [x[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 54.0 and y[i] < 57.94]
-y1  = [y[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 54.0 and y[i] < 57.94]
-x2  = [x[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 57.94]
-y2  = [y[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 57.94]
-x3  = [x[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4 
-                                    and y[i] > 54.0]
-y3  = [y[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4
-                                    and y[i] > 54.0]
-x4  = [x[i] for i in range(len(x)) if x[i] >= 1.4 
-                                    and y[i] > 54.0 and y[i] < 62.0]
-y4  = [y[i] for i in range(len(x)) if x[i] >= 1.4
-                                    and y[i] > 54.0 and y[i] < 62.0]
+l1 = [z for z in points if z[0] < -6.2 
+                                    and z[1] > 54.0 and z[1] < 57.94]
+l2  = [z for z in points if z[0] < -6.2 
+                                    and z[1] > 57.94]
+l3  = [z for z in points if z[0] >= -6.2 and z[0] < 1.4 
+                                    and z[1] > 54.0]
+l4  = [z for z in points if z[0] >= 1.4 
+                                    and z[1] > 54.0 and z[1] < 62.0]
 
-a1 = [(-9.5,54.0),(-11.0,54.0)]
-a2 = [(-5.2,57.3),(-6.35,57.41),(-7.29,57.60),(-8.57,57.81),(-9.21,57.94)]
-a3 = [(-5.0,58.6),(-6.2,59.55)]
-a4 = [(-3.4,58.5),(-3.0,59.0)]
-a5 = [(-3.0,59.0),(-1.2,60.4)]
-a6 = [(-1.2,60.4),(1.4,61.72)]
-b1 = [(-11,54.0),(-20,54.0)] 
-b2 = [(-9.21,57.94),(-13.9,58.9),(-20,58.9)]
-b3 = [(-6.2,59.55),(-8.9,60.9),(-17.0,65.0)]
-b4 = [(-10.0,65.0),(-2.5,62.6),(1.4,61.72)]
-b5 = [(13.0,62.0),(4.07,62.0),(0.0,65.0)]
-b6 = [(1.4,61.72),(4.07,62.0)]
+
+a1 = [(-20,54.0),(-11.0,54.0),(-9.5,54.0)]
+a2 = [(-20,58.9),(-13.9,58.9),(-9.21,57.94),(-8.57,57.81),(-7.29,57.60),
+              (-6.67,57.48)]
+a3 = [(-5.0,58.6),(-6.2,59.55),(-8.9,60.9),(-17.0,65.0)]
+a4 = [(1.4,61.72),(-2.5,62.6),(-10.0,65.0)]
+a5 = [(0.0,65.0),(4.07,62.0),(5.0,62.0)]
+b1 = [(-3.3,58.63),(-3.0,59.0)]
+b2 = [(-3.0,59.0),(-1.2,60.4)]
+b3 = [(-1.2,60.4),(1.4,61.72)]
+b4 = [(1.4,61.72),(4.07,62.0)]
 c1 = [(-12.0,54.0),(-12,65.0)]
-s1 = zip(x1,y1)
-s2 = zip(x2,y2)
-s3 = zip(x3,y3)
-s4 = zip(x4,y4)
-# some combined sections
-d1 = a1 + b1[1:]
-d2 = a2 + b2[1:]
-d3 = a3 + b3[1:]
-d4 = s1 + s2 + s3 + s4
-d5 = s4 + b6[0:1]
-d6 = a4 + a5[1:] + a6[1:] + s4
-d7 = a4 + a5[1:] + a6[1:] + b6[1:] + b5[0:1]
-d8 = b4 + b6[1:] + b5[0:1]
+s1 = l3 + l2 + l1
+s2 = l4
 
 nc_gebco.close()
 
-for iyear in range(1993,2005):
+for iyear in range(1995,2005):
     
     print iyear
 
@@ -114,7 +100,7 @@ for iyear in range(1993,2005):
 #        run_dir = ('E:/af26/LarvalDispersalResults/'
 #                + 'polcoms'+str(iyear)+'/Run_1000_behaviour2/')
         run_dir = ('E:/af26/LarvalDispersalResults/'
-                + 'polcoms'+str(iyear)+'/Run_1000_baseline/')
+                + 'polcoms'+str(iyear)+'/Run_1000_doublelife/')
     elif platform.system() == 'Linux':
         run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
     
@@ -226,26 +212,13 @@ for iyear in range(1993,2005):
         boundary_group.add(Boundary('A3',a3))
         boundary_group.add(Boundary('A4',a4))
         boundary_group.add(Boundary('A5',a5))
-        boundary_group.add(Boundary('A6',a6))
         boundary_group.add(Boundary('B1',b1))
         boundary_group.add(Boundary('B2',b2))
         boundary_group.add(Boundary('B3',b3))
         boundary_group.add(Boundary('B4',b4))
-        boundary_group.add(Boundary('B5',b5))
-        boundary_group.add(Boundary('B6',b6))
         boundary_group.add(Boundary('C1',c1))
         boundary_group.add(Boundary('S1',s1))
         boundary_group.add(Boundary('S2',s2))
-        boundary_group.add(Boundary('S3',s3))
-        boundary_group.add(Boundary('S4',s4))
-        boundary_group.add(Boundary('D1',d1))
-        boundary_group.add(Boundary('D2',d2))
-        boundary_group.add(Boundary('D3',d3))
-        boundary_group.add(Boundary('D4',d4))
-        boundary_group.add(Boundary('D5',d5))
-        boundary_group.add(Boundary('D6',d6))
-        boundary_group.add(Boundary('D7',d7))
-        boundary_group.add(Boundary('D8',d8))
                                            
         # initialise larvae. 
         nc_file = (track_input_dir + MPA_SOURCE + '.nc')
@@ -303,7 +276,7 @@ for iyear in range(1993,2005):
                            
         # output graph to file
     #
-        outfile = open(graph_output_dir + MPA_SOURCE + '_crosses.graphml', 'w')
+        outfile = open(graph_output_dir + MPA_SOURCE + '_crosses2.graphml', 'w')
         NX.write_graphml(G,outfile)
         outfile.close()
     mpa_name_file.close()

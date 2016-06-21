@@ -168,3 +168,13 @@ class Mpa:
             y.append(point[1])
 #        pat.Polygon(zip(x,y))          
         plt.plot(x,y, color = colour)   
+
+    def plot_shape3(self, axarr, colour):
+        x = []
+        y = []
+#        print self.shape_path.contains_point((-14.0,58.0)), self.record[1]
+        for point in self.points:
+            x.append(point[0])
+            y.append(point[1])
+#        pat.Polygon(zip(x,y))          
+        axarr.plot(x,y, color = colour, linewidth = 0.7)   

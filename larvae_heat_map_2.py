@@ -33,7 +33,7 @@ def read_mpas():
     mpa_group = set([])
     
     if platform.system() == 'Windows':    
-        shapefile_root =   'G:/af26/Shapefiles/' #windows
+        shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
     elif platform.system() == 'Linux':
         shapefile_root =   '/home/af26/Shapefiles/' #linux
     
@@ -75,7 +75,7 @@ def read_mpas():
 # need t grids for the 2d histogram
 
 #nc_filedzu = 'C:/Users/af26/PolcommModelData/depth_dz_S12run420_UV.nc'
-nc_filedzt = 'G:/af26/PolcommModelData/depth_dz_S12run420_TS.nc'
+nc_filedzt = 'C:/Users/af26/PolcommModelData/depth_dz_S12run420_TS.nc'
 #nc_fiddzu = Dataset(nc_filedzu, 'r')
 nc_fiddzt = Dataset(nc_filedzt, 'r')
 
@@ -92,7 +92,7 @@ longitude = gridt.get_longitude()
 
 # read in GEBCO bathymetry
 
-nc_infile = ('G:/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
+nc_infile = ('C:/Users/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
 
 nc_gebco = Dataset(nc_infile,'r')
 
@@ -132,8 +132,8 @@ MPA_LOPHELIA = (['Anton Dohrn Seamount',
 #               'Norwegian Boundary Sediment Plain',
 #               'Central Fladen'])
 
-MPA_SOURCE = (['Darwin Mounds',
-               'Faroe-Shetland Sponge Belt',
+MPA_SOURCE = (['Aviles Canyon',
+               'Galicia Mounds',
                'Rosemary Bank Seamount',
                'Wyville Thomson Ridge'])
 
@@ -151,7 +151,7 @@ min_temp = 0.0
   
 mpa_group = read_mpas()    
      
-for year in range(1965,2005):
+for year in range(1990,1990):
     year_str = str(year)
     
     # timesteps per day
@@ -161,8 +161,8 @@ for year in range(1965,2005):
     starttime = datetime.datetime(year,2,1)
     
     if platform.system() == 'Windows':
-        run_dir = ('F:/af26/LarvalDispersalResults/'
-                + 'polcoms'+year_str+'/Run_1000_baseline/')
+        run_dir = ('E:/af26/LarvalDispersalResults/'
+                + 'polcoms'+year_str+'/Run_1000_doublelife/')
     elif platform.system() == 'Linux':
         run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
     
@@ -211,7 +211,7 @@ for mpa in mpa_group:
                               
 hd = plt.hist2d(x,y,[longitude,latitude], cmin = 0.1)
 plt.xlim([-20, 13])
-plt.ylim([54, 65])
+plt.ylim([35, 55])
 plt.colorbar(orientation='horizontal')
 # save 300 m contour line
 cs = plt.contour(lon_bath,lat_bath,bathymetry,[-1000,-200],
@@ -224,11 +224,11 @@ plt.ylabel('latitude')
 plt.xlabel('longitude')
 plt.show()
 
-filenameroot = ('G:/Documents/Papers/LopheliaConnectivity/' + 
-                 'heatmap_baseline_1965to2005_NorthWest')
-
-plt.savefig(filenameroot + '.pdf')
-plt.savefig(filenameroot + '.png', dpi = 1000)
+#filenameroot = ('C:/Users/af26/Documents/Papers/LopheliaConnectivity/' + 
+#                 'heatmap_doublelife_1965to2005_NorthWest')
+#
+#plt.savefig(filenameroot + '.pdf')
+#plt.savefig(filenameroot + '.png', dpi = 1000)
 #            
 ##    m.scatter(x,y, s = 5, marker = "o", c = z, 
 ##              cmap = cmap, norm = norm, edgecolor = 'none', latlon = True)

@@ -24,6 +24,7 @@ POLCOMS netcdf arrays are indexed [k,j,i] ie [depth, lat, lon]
 
 """
 import platform
+import os
 from netCDF4 import Dataset
 import numpy as np
 import matplotlib.path as mplPath
@@ -93,9 +94,15 @@ def release_larvae(source, num, release_day):
                 while not path.contains_point((x,y)):
                     x = np.random.uniform(bbox[0],bbox[2])
                     y = np.random.uniform(bbox[1],bbox[3])
-            # check not on land
+            # check not on land and temperature in range
                 i,j = gridt.get_index_ne(x,y)
-                if not gridu.is_on_land(i,j):
+                ipost, jpost = gridu.get_index_ne(x, y)
+                ipost = ipost - 1
+                jpost = jpost - 1
+                t_in_range = (temperature[0,jpost,ipost] > T_LOWER and
+                              temperature[0,jpost,ipost] < T_UPPER) 
+
+                if (not gridu.is_on_land(i,j)) and t_in_range:
                     #for release at bed
                     z = -1.0
                     # for release at random depth 10 - 100 m
@@ -112,9 +119,41 @@ def release_larvae(source, num, release_day):
                                            ))
                     nlarvae = nlarvae + 1    
 
-def save_tracks_to_file(nc_outfile):
+def save_tracks_to_file(nc_outfile,iyear,MPA_SOURCE):
 
     nc_ofid = Dataset(nc_outfile, 'w')
+    
+# write run info to track file
+    
+    nc_ofid.mpa_source = MPA_SOURCE
+    nc_ofid.iyear = iyear
+    nc_ofid.NUM_LARVAE = NUM_LARVAE
+    nc_ofid.RELEASE_WINDOW = RELEASE_WINDOW
+    nc_ofid.STARTDAY = STARTDAY
+    nc_ofid.DT = DT
+    nc_ofid.KMX = KMX
+    nc_ofid.KMY = KMY
+    nc_ofid.KMZ = KMZ
+    
+    nc_ofid.VERTICAL_INTERP = str(VERTICAL_INTERP)
+    nc_ofid.ANIMATE = str(ANIMATE)
+    nc_ofid.DEATH = str(DEATH)
+
+    nc_ofid.BEHAVIOUR = BEHAVIOUR    # behaviour index
+#    # 1 is standard Larrson et al behaviour
+#    # 2 is modified Larsson et al with small swimming speeds
+    nc_ofid.TARGETDEPTH = TARGETDEPTH    # target depth
+    nc_ofid.SWIMSLOW = SWIMSLOW          #initial swimming speed
+    nc_ofid.SWIMFAST = SWIMFAST     # max swimming speed
+    nc_ofid.SWIMSTART = SWIMSTART       #age in days at which start swimming
+    nc_ofid.SWIMMAX = SWIMMAX          #average age in days at which max swimming speed is reached
+    nc_ofid.DESCENDAGE = DESCENDAGE       # average age at which probability of heading down starts
+                            # to increase
+    nc_ofid.DESCENDAGERANGE = DESCENDAGERANGE    # now fully heading down
+    nc_ofid.MINSETTLEAGE = MINSETTLEAGE     # minimum age at which can settle given suitable 
+                            # habitat
+    nc_ofid.DEADAGE = DEADAGE          # Average age at which dead
+    
     
     nl = len(larvae_dead) + len(larvae_outofarea) + len(larvae_group)
     
@@ -198,14 +237,16 @@ def save_tracks_to_file(nc_outfile):
 
 # Multiyear loop. Probably not efficient.
 
-for iyear in range(1965,1967):
+#for iyear in range(1984,2005):
+for iyear in range(1984,1985):
 # different paths for windows and linux machines
 
     print iyear
 
     if platform.system() == 'Windows':
-        run_dir = ('E:/af26/LarvalDispersalResults/'
-                + 'polcoms' + str(iyear) + '/Run_1000_behaviour2/')
+#        run_dir = ('E:/af26/LarvalDispersalResults/'
+#                + 'polcoms' + str(iyear) + '/Run_1000_baseline/')
+        run_dir = ('C:/Users/af26/Test/')
     elif platform.system() == 'Linux':
         run_dir = ('/home/af26/LarvalModelResults/Polcoms1990/Run_test/')
     
@@ -216,17 +257,23 @@ for iyear in range(1965,1967):
     input_dict = {}
     
     for line in input_data_file:
-        wordlist = line.split()
-        input_dict[wordlist[0]] = wordlist[-1]
+        wordlist = line.split(None,2)
+        input_dict[wordlist[0]] = wordlist[-1].rstrip()
         
     input_data_file.close()
         
     log_file.write(str(input_dict))
     #log_file.close()
         
-    track_output_dir = run_dir + 'Trackdata/'
+    track_output_dir = run_dir + 'TrackdataTmin/'
+    try: 
+        os.makedirs(track_output_dir)
+    except OSError:
+        if not os.path.isdir(track_output_dir):
+            raise
     
-    mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
+#    mpa_name_file = open(run_dir + 'MPA_names.txt', 'r') 
+    mpa_name_file = open('E:/af26/MPALists/MPA_names_WTR.txt', 'r') 
     
     nc_fileu = input_dict['nc_fileu']
     nc_filet = input_dict['nc_filet']
@@ -299,8 +346,8 @@ for iyear in range(1965,1967):
     # just set wide here, all larvae survive but temperature
     # along track is recorded for possible use later
     
-    T_LOWER = -10.0
-    T_UPPER = 100.0     
+    T_LOWER = 4.0
+    T_UPPER = 12.0     
         
         
     # bring constants together for passing to larva class
@@ -434,7 +481,7 @@ for iyear in range(1965,1967):
         
         track_outfile = track_output_dir + MPA_SOURCE + '.nc'
     
-        save_tracks_to_file(track_outfile)
+        save_tracks_to_file(track_outfile,iyear,MPA_SOURCE)
 
 #   close all input and output files ready for next year
         

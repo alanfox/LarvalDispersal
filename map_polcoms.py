@@ -135,8 +135,8 @@ def read_mpas():
 mpa_group = read_mpas()    
 
 
-nc_fileu = 'X:/Lophelia Share/PolcommModelData/1995/NOCL_S12run420_1995_UV.nc'
-nc_filet = 'X:/Lophelia Share/PolcommModelData/1995/NOCL_S12run420_1995_TSz.nc'
+nc_fileu = 'X:/Lophelia Share/PolcommModelData/1965/NOCL_S12run420_1965_UV.nc'
+nc_filet = 'X:/Lophelia Share/PolcommModelData/1965/NOCL_S12run420_1965_TSz.nc'
 
 nc_fidu = Dataset(nc_fileu, 'r')
 nc_attrs, nc_dims, nc_vars = ncdump(nc_fidu)

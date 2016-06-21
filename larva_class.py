@@ -2,7 +2,6 @@
 """
 Created on Mon Feb 23 14:56:12 2015
 
-@author: af26
 Larva class definitions required for the polcoms particle tracking
 model.
 
@@ -15,26 +14,21 @@ from larva_class import Larva
 import numpy as np
 from scipy.interpolate import interp1d
 
-
-
-
 class Larva:
-    
     
     # each larva will be an instance of this class
 
     def __init__(self, pos, vel, source, release_day, gridt, gridu,
-                 RUN_CONST, SWIM_CONST, temperature, salinity, T_LOWER, T_UPPER):
+                 RUN_CONST, SWIM_CONST, 
+                 temperature, salinity, T_LOWER, T_UPPER):
 
         self.age = 0.0
         self.release_day = release_day
         self.at_bed = False
         self.pos = np.array([pos[0], pos[1], pos[2]])
         #if pos[2] is negative, bed release
-        
         if self.pos[2] < 0.0:
             self.bed_release(self.pos, gridt)
-            
         self.newpos = np.array([pos[0], pos[1], pos[2]])
         self.vel = np.array([vel[0], vel[1], vel[2]])
         self.xlon_history = []
@@ -215,7 +209,8 @@ class Larva:
         
 
     def diffusion(self):
-        # 2-d horizontal diffusion with constant k. Gaussian randon walk.
+        # 3-d diffusion with constant k (different horizontal and vertical).
+        # Gaussian randon walk.
         # vertical diffusion, Gaussian random walk, different constant.
     
         rnorm = np.random.normal(0.0,1.0,3)
@@ -376,16 +371,15 @@ class Larva:
         
         # check for heat death
         
-#        print self.kpos,self.jpos,self.ipos
-#        print temperature[self.kpos,self.jpos,self.ipos]
-        
-        self.isdead = (
-            (temperature[self.kpos,self.jpos,self.ipos] > self.t_upper 
-            or temperature[self.kpos,self.jpos,self.ipos] < self.t_lower)
-            )
-                      
-        if self.isdead:
-            return False
+##NOTE: Don't do this here, record all full paths with the temperature. Can
+#       check mortality later in post-processing.        
+#        self.isdead = (
+#            (temperature[self.kpos,self.jpos,self.ipos] > self.t_upper 
+#            or temperature[self.kpos,self.jpos,self.ipos] < self.t_lower)
+#            )
+#                      
+#        if self.isdead:
+#            return False
 
         # advection
         self.advection(gridt, u, v, w)

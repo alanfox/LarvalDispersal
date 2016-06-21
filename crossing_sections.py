@@ -5,7 +5,7 @@
 """
 
 from netCDF4 import Dataset
-import numpy as np
+#import numpy as np
 import matplotlib.pyplot as plt
 import shapefile
 #from matplotlib.colors import ListedColormap, BoundaryNorm
@@ -26,7 +26,7 @@ def read_mpas():
     mpa_group = set([])
     
     if platform.system() == 'Windows':    
-        shapefile_root =   'G:/af26/Shapefiles/' #windows
+        shapefile_root =   'C:/Users/af26/Shapefiles/' #windows
     elif platform.system() == 'Linux':
         shapefile_root =   '/home/af26/Shapefiles/' #linux
     
@@ -63,11 +63,23 @@ def read_mpas():
         
     return mpa_group
     
-MPA_SOURCE = (['Anton Dohrn Seamount',
-               'East Mingulay',
-               'Hatton Bank'])
+MPA_SOURCE = ([
+'North-east Faroe-Shetland Channel',
+'East Rockall Bank',
+'Faroe-Shetland Sponge Belt',
+'Anton Dohrn Seamount',
+'Wyville Thomson Ridge',
+'Darwin Mounds',
+'East Mingulay',
+'The Barra Fan and Hebrides Terrace Seamount',
+'North West Rockall Bank',
+'Geikie Slide and Hebridean Slope',
+'Hatton Bank',
+'Rosemary Bank Seamount',
+'Hatton-Rockall Basin'
+])
 
-nc_infile = ('G:/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
+nc_infile = ('C:/Users/af26/GEBCO/GEBCO_2014_2D_-20.0_40.0_13.0_65.0.nc')
 
 nc_gebco = Dataset(nc_infile,'r')
 
@@ -77,7 +89,7 @@ lon = nc_gebco.variables['lon'][:]
 
 mpa_group = read_mpas()
    
-# save 300 m contour line
+# save 200 m contour line
 cs = plt.contour(lon,lat,elevation,[-200],colors = 'k',linestyles = 'solid')
 # colours land in black
 
@@ -86,31 +98,24 @@ cs = plt.contour(lon,lat,elevation,[-200],colors = 'k',linestyles = 'solid')
 # contour is broken.
 # Need to look at result to check the right section is selected
 
-p = cs.collections[0].get_paths()[0]
+p = cs.collections[0].get_paths()[6]
 v = p.vertices
 x = v[:,0]
 y = v[:,1]
+points = zip(x,y)
 
 # cut this into sections to test
 # crossings in each section.
 
-x1  = [x[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 54.0 and y[i] < 57.94]
-y1  = [y[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 54.0 and y[i] < 57.94]
-x2  = [x[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 57.94]
-y2  = [y[i] for i in range(len(x)) if x[i] < -6.2 
-                                    and y[i] > 57.94]
-x3  = [x[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4 
-                                    and y[i] > 54.0]
-y3  = [y[i] for i in range(len(x)) if x[i] >= -6.2 and x[i] < 1.4
-                                    and y[i] > 54.0]
-x4  = [x[i] for i in range(len(x)) if x[i] >= 1.4 
-                                    and y[i] > 54.0 and y[i] < 62.0]
-y4  = [y[i] for i in range(len(x)) if x[i] >= 1.4
-                                    and y[i] > 54.0 and y[i] < 62.0]
-
+s1 = [z for z in points if z[0] < -6.2 
+                                    and z[1] > 54.0 and z[1] < 57.94]
+s2  = [z for z in points if z[0] < -6.2 
+                                    and z[1] > 57.94]
+s3  = [z for z in points if z[0] >= -6.2 and z[0] < 1.4 
+                                    and z[1] > 54.0]
+s4  = [z for z in points if z[0] >= 1.4 
+                                    and z[1] > 54.0 and z[1] < 62.0]
+                                                                        
 a1 = [(-11.0,54.0),(-9.5,54.0)]
 a2 = [(-9.21,57.94),(-8.57,57.81),(-7.29,57.60),
               (-6.35,57.41),(-5.2,57.3)]
@@ -125,10 +130,10 @@ b4 = [(1.4,61.72),(-2.5,62.6),(-10.0,65.0)]
 b5 = [(13.0,62.0),(4.07,62.0),(0.0,65.0)]
 b6 = [(1.4,61.72),(4.07,62.0)]
 c1 = [(-12.0,54.0),(-12,65.0)]
-s1 = zip(x1,y1)
-s2 = zip(x2,y2)
-s3 = zip(x3,y3)
-s4 = zip(x4,y4)
+#s1 = zip(x1,y1)
+#s2 = zip(x2,y2)
+#s3 = zip(x3,y3)
+#s4 = zip(x4,y4)
 
 nc_gebco.close()
 
@@ -137,13 +142,15 @@ plt.figure(figsize=(6,6.5))
 plt.contourf(lon,lat,elevation,[0,5000], colors = 'lightgreen')
 plt.contour(lon,lat,elevation,[0], colors = 'k')
 
-cs1 = plt.contour(lon,lat,elevation,[-200,-400,-800,-1000,-2000,-4000],
+cs1 = plt.contour(lon,lat,elevation,[-200,-300,-400,-500,-600,-700,-800,-1000,-2000,-4000],
                   colors = 'grey',linestyles = 'solid')
 plt.clabel(cs1, inline=1, inline_spacing=-5, fontsize=6,fmt='%4.0f')                 
 plt.xlim([-20, 3])
 plt.ylim([50, 65])
 #plt.contour(lon,lat,elevation,[-600],colors = 'k')
 #plt.contour(lon,lat,elevation,[-1000],colors = 'k')
+
+#plt.plot(x,y, color = 'darkgreen')
 
 plt.plot(zip(*a1)[0],zip(*a1)[1], color = 'darkgreen')
 plt.text((zip(*a1)[0][0]+zip(*a1)[0][-1])/2.0,
@@ -230,11 +237,11 @@ for mpa in mpa_group:
 
 plt.show()
 
-filenameroot = ('G:/Documents/Papers/LopheliaConnectivity/' + 
-                 'crossings_sections_West')
-
-plt.savefig(filenameroot + '.pdf')
-plt.savefig(filenameroot + '.png', dpi = 1000)
+#filenameroot = ('G:/Documents/Papers/LopheliaConnectivity/' + 
+#                 'crossings_sections_West')
+#
+#plt.savefig(filenameroot + '.pdf')
+#plt.savefig(filenameroot + '.png', dpi = 1000)
                                    
                                     
                                     
